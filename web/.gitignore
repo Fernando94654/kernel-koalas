@@ -1,0 +1,22 @@
+# dependencies
+/node_modules
+
+# next.js
+/.next/
+/out/
+next-env.d.ts
+
+# production
+/build
+
+# data artifacts (generados por prepare-data)
+/artifacts
+
+# env
+.env
+.env*.local
+
+# misc
+*.log
+.DS_Store
+*.tsbuildinfo

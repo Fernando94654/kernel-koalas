@@ -1,0 +1,15 @@
+{
+  "name": "Order Rescue · Arca Continental",
+  "short_name": "Order Rescue",
+  "description": "Riesgo de sustitución de pedidos antes de que salgan del CEDIS",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f4f5f7",
+  "theme_color": "#e3001b",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}

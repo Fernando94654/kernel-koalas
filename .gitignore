@@ -1,0 +1,23 @@
+# Secrets
+.env
+
+# Data (large CSVs — keep out of git)
+data/
+Participantes/*.csv
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+
+# Node (stray)
+node_modules/
+package-lock.json
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Order Rescue · Semáforo CEDIS</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="wrap">
+    <h1>Vista operador — Semáforo de CEDIS</h1>
+    <p class="sub">Centros de distribución ordenados por tasa de afectación histórica. Filtra por país o unidad de negocio.</p>
+
+    <div class="panel" style="margin-bottom:18px">
+      <div class="row">
+        <div style="min-width:200px"><label class="fld">País</label><select id="f-pais"></select></div>
+        <div style="min-width:200px"><label class="fld">Unidad de negocio</label><select id="f-bu"></select></div>
+        <div><button id="btn-filtrar">Aplicar</button></div>
+        <div><button class="ghost" id="btn-limpiar">Limpiar</button></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <table>
+        <thead><tr>
+          <th>CEDIS</th><th class="num"># pedidos</th><th class="num">líneas 🔴</th>
+          <th class="num">líneas 🟡</th><th class="num">tasa afectación</th><th>nivel</th><th></th>
+        </tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+      <p class="muted" id="empty" style="margin-top:14px"></p>
+    </div>
+
+    <div class="panel hidden" id="detalle" style="margin-top:18px">
+      <h3 id="det-title"></h3>
+      <table>
+        <thead><tr><th>SKU</th><th class="num"># pedidos</th><th class="num"># sustituido</th><th class="num">score</th><th>nivel</th></tr></thead>
+        <tbody id="det-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    async function loadFiltros() {
+      const c = await getJSON("/api/catalogos");
+      document.getElementById("f-pais").innerHTML = `<option value="">Todos</option>` + c.paises.map(p => `<option>${p}</option>`).join("");
+      document.getElementById("f-bu").innerHTML = `<option value="">Todas</option>` + c.business_units.map(b => `<option>${b}</option>`).join("");
+    }
+    async function loadTabla() {
+      const pais = document.getElementById("f-pais").value;
+      const bu = document.getElementById("f-bu").value;
+      const qs = new URLSearchParams();
+      if (pais) qs.set("pais", pais);
+      if (bu) qs.set("business_unit", bu);
+      const data = await getJSON("/api/semaforo/cedis?" + qs.toString());
+      const rows = data.cedis.filter(r => r.n_pedidos > 0 || (!pais && !bu));
+      document.getElementById("empty").textContent = rows.length ? "" : "Sin CEDIS para ese filtro.";
+      document.getElementById("tbody").innerHTML = rows.map(r => `
+        <tr>
+          <td><strong>${r.cedis}</strong></td>
+          <td class="num">${fmt(r.n_pedidos)}</td>
+          <td class="num">${fmt(r.lineas_rojo)}</td>
+          <td class="num">${fmt(r.lineas_amarillo)}</td>
+          <td class="num">${(r.tasa_afectacion*100).toFixed(1)}%</td>
+          <td>${nivelBadge(r.nivel)}</td>
+          <td><button class="ghost" onclick="verDetalle('${r.cedis}')">Ver SKUs</button></td>
+        </tr>`).join("");
+    }
+    async function verDetalle(cedis) {
+      const d = await getJSON("/api/semaforo/cedis/" + encodeURIComponent(cedis));
+      document.getElementById("detalle").classList.remove("hidden");
+      document.getElementById("det-title").textContent = `CEDIS ${d.cedis} · tasa afectación ${(d.tasa_afectacion*100).toFixed(1)}% · SKUs de mayor riesgo`;
+      document.getElementById("det-tbody").innerHTML = d.skus.map(s => `
+        <tr><td>${s.sku}</td><td class="num">${fmt(s.n_total)}</td><td class="num">${fmt(s.n_sust)}</td>
+        <td class="num">${s.score.toFixed(4)}</td><td>${nivelDot(s.nivel)} ${s.nivel}</td></tr>`).join("");
+      document.getElementById("detalle").scrollIntoView({ behavior: "smooth" });
+    }
+    document.getElementById("btn-filtrar").onclick = loadTabla;
+    document.getElementById("btn-limpiar").onclick = () => {
+      document.getElementById("f-pais").value = ""; document.getElementById("f-bu").value = ""; loadTabla();
+    };
+    renderNav("semaforo.html");
+    loadFiltros().then(loadTabla);
+  </script>
+</body>
+</html>

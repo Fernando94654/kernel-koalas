@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --rojo: #e3001b;
+  --amarillo: #f5a623;
+  --verde: #2eae5b;
+}
+
+html, body {
+  height: 100%;
+}
+body {
+  background: #eceef1;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+}
+
+/* Columna estilo "teléfono": app móvil centrada también en desktop */
+.phone {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  background: #f4f5f7;
+  position: relative;
+  box-shadow: 0 0 40px rgba(0, 0, 0, .08);
+  display: flex;
+  flex-direction: column;
+}
+
+.app-main {
+  flex: 1;
+  padding: 16px 16px calc(96px + env(safe-area-inset-bottom));
+  overflow-x: hidden;
+}
+
+@layer components {
+  .badge { @apply inline-block rounded-full px-2.5 py-0.5 text-xs font-bold text-white; }
+  .badge-Rojo { background: var(--rojo); }
+  .badge-Amarillo { background: var(--amarillo); }
+  .badge-Verde { background: var(--verde); }
+  .card { @apply rounded-2xl border border-gray-200 bg-white p-4 shadow-card; }
+  .pill { @apply rounded-full border border-gray-300 bg-white px-3 py-1 text-sm; }
+  .input { @apply w-full rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-[15px] outline-none focus:border-rojo; }
+  .btn { @apply rounded-xl bg-rojo px-4 py-2.5 font-semibold text-white active:bg-rojo-dark disabled:opacity-50; }
+  .btn-ghost { @apply rounded-xl border border-gray-300 bg-white px-4 py-2.5 font-medium text-ink active:bg-gray-100; }
+}
+
+.dot-Rojo { color: var(--rojo); }
+.dot-Amarillo { color: var(--amarillo); }
+.dot-Verde { color: var(--verde); }
+
+/* scroll suave en listas */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner { width: 16px; height: 16px; border: 2px solid #d1d5db; border-top-color: var(--rojo); border-radius: 50%; display: inline-block; animation: spin .8s linear infinite; vertical-align: middle; }

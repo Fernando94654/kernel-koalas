@@ -1,0 +1,38 @@
+⏳ Cargando datos y precalculando modelo...
+✅ Listo: 68,683 pedidos · 1,016,686 líneas · 3,434 sustituciones · 178 CEDIS
+INFO:     127.0.0.1:51920 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64736 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64736 - "GET /styles.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56410 - "GET /app.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64736 - "GET /charts.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64736 - "GET /api/eda/metricas HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56410 - "GET /api/eda/top-skus HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61151 - "GET /api/eda/sustituciones-por-cedis?limit=20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64736 - "GET /api/eda/pares-sustitucion?limit=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56410 - "GET /api/eda/grafo?top_nodes=40 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56410 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:57089 - "GET /semaforo.html HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57089 - "GET /api/catalogos HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57089 - "GET /api/semaforo/cedis HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63770 - "GET /api/semaforo/cedis/3004 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56915 - "GET /pedido.html HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56915 - "GET /pedido.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56915 - "GET /api/catalogos HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64892 - "GET /chat.html HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64892 - "GET /chat.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64892 - "POST /api/chat HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61903 - "GET /pedido.html HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:61903 - "GET /styles.css HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:61903 - "GET /app.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:61903 - "GET /pedido.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:61903 - "GET /api/catalogos HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61903 - "GET /semaforo.html HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:61903 - "GET /api/catalogos HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61903 - "GET /api/semaforo/cedis HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61903 - "GET /index.html HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61903 - "GET /charts.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:61903 - "GET /api/eda/metricas HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61842 - "GET /api/eda/top-skus HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56077 - "GET /api/eda/sustituciones-por-cedis?limit=20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53399 - "GET /api/eda/pares-sustitucion?limit=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61903 - "GET /api/eda/grafo?top_nodes=40 HTTP/1.1" 200 OK
