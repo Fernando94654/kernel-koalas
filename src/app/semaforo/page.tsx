@@ -23,16 +23,16 @@ export default function SemaforoPage() {
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="h-4 w-1 rounded-full bg-rojo" />
-          <h3 className="text-sm font-semibold text-ink">CEDIS {sel}</h3>
+          <h3 className="text-sm font-semibold text-ink">Bodega: {sel}</h3>
         </div>
         {detalle.data && (
           <span className="badge badge-Rojo text-[10px]">
-            {(detalle.data.tasa_afectacion * 100).toFixed(1)}% affected
+            {(detalle.data.tasa_afectacion * 100).toFixed(1)}% con cambios
           </span>
         )}
       </div>
       {detalle.isLoading && (
-        <p className="text-sm text-muted"><span className="spinner" /> Loading…</p>
+        <p className="text-sm text-muted"><span className="spinner" /> Cargando…</p>
       )}
       <div className="space-y-2">
         {detalle.data?.skus.slice(0, 15).map((s) => (
@@ -51,9 +51,9 @@ export default function SemaforoPage() {
     <div>
       {/* Page header */}
       <div className="mb-5">
-        <h1 className="text-xl font-extrabold tracking-tight text-ink">CEDIS Traffic Light</h1>
+        <h1 className="text-xl font-extrabold tracking-tight text-ink">Semáforo de Bodegas</h1>
         <p className="mt-0.5 text-xs text-muted">
-          Distribution centers ranked by historical substitution impact rate.
+          Conoce qué bodegas tienen mayor probabilidad de cambiar tus productos, basado en el historial reciente.
         </p>
       </div>
 
@@ -68,24 +68,24 @@ export default function SemaforoPage() {
           <div className="card mb-3">
             <div className="mb-3 flex items-center gap-2">
               <span className="h-4 w-1 rounded-full bg-rojo" />
-              <h3 className="text-sm font-semibold text-ink">Filters</h3>
+              <h3 className="text-sm font-semibold text-ink">Filtros</h3>
             </div>
             <div className="space-y-3">
               <div>
                 <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-muted">
-                  Country
+                  País
                 </label>
                 <select className="input" value={pais} onChange={(e) => setPais(e.target.value)}>
-                  <option value="">All</option>
+                  <option value="">Todos</option>
                   {cat?.paises.map((p) => <option key={p}>{p}</option>)}
                 </select>
               </div>
               <div>
                 <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-muted">
-                  Business unit
+                  Categoría
                 </label>
                 <select className="input" value={bu} onChange={(e) => setBu(e.target.value)}>
-                  <option value="">All</option>
+                  <option value="">Todos</option>
                   {cat?.business_units.map((b) => <option key={b}>{b}</option>)}
                 </select>
               </div>
@@ -103,17 +103,17 @@ export default function SemaforoPage() {
               className="grid grid-cols-[1fr_auto_auto_auto] gap-2 px-3 py-2.5 text-[10px] font-semibold uppercase tracking-wide text-muted"
               style={{ borderBottom: "1px solid var(--color-border)" }}
             >
-              <span>CEDIS</span>
-              <span className="text-right">Orders</span>
+              <span>Bodega / Centro</span>
+              <span className="text-right">Pedidos</span>
               <span className="text-right">🔴/🟡</span>
-              <span className="text-right">Rate</span>
+              <span className="text-right">% Cambios</span>
             </div>
 
             {sem.isLoading && (
-              <div className="p-4 text-sm text-muted"><span className="spinner" /> Loading…</div>
+              <div className="p-4 text-sm text-muted"><span className="spinner" /> Cargando…</div>
             )}
             {!sem.isLoading && rows.length === 0 && (
-              <div className="p-4 text-sm text-muted">No CEDIS match those filters.</div>
+              <div className="p-4 text-sm text-muted">Ninguna bodega coincide con los filtros seleccionados.</div>
             )}
 
             {rows.map((r) => {

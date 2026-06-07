@@ -49,7 +49,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               </div>
               {/* Desktop tagline */}
               <p className="hidden text-xs font-medium opacity-70 md:block">
-                Substitution Risk · Real-time
+                Disponibilidad en Tiempo Real
               </p>
             </header>
 

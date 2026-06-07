@@ -29,7 +29,7 @@ function ScoreHeader({ score, nivel }: { score: number; nivel: Nivel }) {
     <div className="flex items-center justify-between rounded-xl border border-border bg-surface px-4 py-3">
       <div>
         <div className="text-[10px] font-semibold uppercase tracking-widest text-muted">
-          Order score
+          Riesgo del pedido
         </div>
         <div className={`text-3xl font-extrabold tracking-tight dot-${nivel}`}>
           {score.toFixed(4)}
@@ -49,7 +49,7 @@ function LineasList({ lineas }: { lineas: Linea[] }) {
             <span className="text-sm font-medium text-ink">
               {nivelEmoji[l.nivel]} {l.nombre_sku}
               {!l.historico && (
-                <span className="ml-1 text-[10px] text-muted">(no history)</span>
+                <span className="ml-1 text-[10px] text-muted">(sin historial)</span>
               )}
             </span>
             <span className="shrink-0 text-right text-sm">
@@ -59,7 +59,7 @@ function LineasList({ lineas }: { lineas: Linea[] }) {
           </div>
           {l.sustitutos_probables.length > 0 && (
             <div className="mt-1 text-[11px] text-muted">
-              Likely substitute:{" "}
+              Posible reemplazo:{" "}
               <span className="font-medium">{l.sustitutos_probables[0]!.nombre}</span>{" "}
               <span className="opacity-70">({l.sustitutos_probables[0]!.frecuencia}×)</span>
             </div>
@@ -109,7 +109,7 @@ function SKUPicker({
     <div ref={containerRef} className="relative flex-1">
       <input
         className="input w-full"
-        placeholder="Search SKU…"
+        placeholder="Escribe el nombre del producto…"
         value={value}
         onChange={(e) => { onChange(e.target.value); setOpen(true); }}
         onFocus={() => setOpen(true)}
@@ -170,9 +170,9 @@ export default function PedidoPage() {
     <div>
       {/* Page header */}
       <div className="mb-5">
-        <h1 className="text-xl font-extrabold tracking-tight text-ink">Order & Simulator</h1>
+        <h1 className="text-xl font-extrabold tracking-tight text-ink">Revisar y Anticipar Pedidos</h1>
         <p className="mt-0.5 text-xs text-muted">
-          Look up an existing order or simulate a new one in real time.
+          Busca un pedido que ya realizaste o arma tu lista para ver si todos los productos te llegarán completos.
         </p>
       </div>
 
@@ -181,38 +181,38 @@ export default function PedidoPage() {
 
         {/* ── Search existing order ── */}
         <section className="card mb-4 md:mb-0">
-          <SectionHeader title="Search existing order" />
+          <SectionHeader title="Rastrear pedido existente" />
 
           <div className="flex gap-2">
             <input
               className="input"
-              placeholder="e.g. 8839440000000000000"
+              placeholder="Ej. 8839440000000000000"
               value={idInput}
               inputMode="numeric"
               onChange={(e) => setIdInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && setQueryId(idInput.trim())}
             />
             <button className="btn shrink-0" onClick={() => setQueryId(idInput.trim())}>
-              Search
+              Buscar
             </button>
           </div>
 
           {queryId && pedido.isLoading && (
-            <p className="mt-3 text-sm text-muted"><span className="spinner" /> Searching…</p>
+            <p className="mt-3 text-sm text-muted"><span className="spinner" /> Buscando…</p>
           )}
           {queryId && !pedido.isLoading && !pedido.data && (
-            <p className="mt-3 text-sm text-rojo">Order not found.</p>
+            <p className="mt-3 text-sm text-rojo">No encontramos ese pedido. Verifica el número e intenta de nuevo.</p>
           )}
 
           {pedido.data && (
             <div className="mt-3">
               <ScoreHeader score={pedido.data.score_pedido} nivel={pedido.data.nivel_pedido} />
               <div className="mt-3 grid grid-cols-2 gap-2">
-                <Info label="CEDIS"         value={pedido.data.cabecera.cedis} />
-                <Info label="Country"       value={pedido.data.cabecera.pais ?? "—"} />
-                <Info label="Business unit" value={pedido.data.cabecera.business_unit ?? "—"} />
-                <Info label="Status"        value={pedido.data.cabecera.status_final ?? "—"} />
-                <Info label="Lines"         value={fmt(pedido.data.cabecera.n_lineas)} />
+                <Info label="Bodega"     value={pedido.data.cabecera.cedis} />
+                <Info label="País"       value={pedido.data.cabecera.pais ?? "—"} />
+                <Info label="Categoría"  value={pedido.data.cabecera.business_unit ?? "—"} />
+                <Info label="Estado"     value={pedido.data.cabecera.status_final ?? "—"} />
+                <Info label="Líneas"     value={fmt(pedido.data.cabecera.n_lineas)} />
                 <Info label="Total"         value={
                   pedido.data.cabecera.total
                     ? `$${fmt(Math.round(pedido.data.cabecera.total))}`
@@ -238,22 +238,22 @@ export default function PedidoPage() {
 
         {/* ── Simulator ── */}
         <section className="card">
-          <SectionHeader title="Simulate new order" />
+          <SectionHeader title="Armar nuevo pedido" />
 
           <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-muted">
-            CEDIS
+            Selecciona tu bodega
           </label>
           <select
             className="input mb-3"
             value={cedis}
             onChange={(e) => setCedis(e.target.value)}
           >
-            <option value="">Select…</option>
+            <option value="">Elige una bodega…</option>
             {cat?.cedis.map((c) => <option key={c}>{c}</option>)}
           </select>
 
           <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-muted">
-            Add SKU
+            Añadir productos
           </label>
           <div className="flex gap-2">
             <SKUPicker
@@ -299,13 +299,13 @@ export default function PedidoPage() {
               disabled={!cedis || !lineas.length || simular.isPending}
               onClick={() => simular.mutate({ cedis, lineas })}
             >
-              {simular.isPending ? "Calculating…" : "Calculate risk"}
+              {simular.isPending ? "Calculando…" : "Verificar disponibilidad"}
             </button>
             <button
               className="btn-ghost"
               onClick={() => { setLineas([]); simular.reset(); }}
             >
-              Clear
+              Limpiar lista
             </button>
           </div>
 
@@ -313,7 +313,7 @@ export default function PedidoPage() {
             <div className="mt-4">
               <ScoreHeader score={simular.data.score_pedido} nivel={simular.data.nivel_pedido} />
               <p className="mt-2 text-[11px] text-muted">
-                CEDIS {simular.data.cedis} · rate {(simular.data.tasa_cedis * 100).toFixed(1)}%
+                Bodega: {simular.data.cedis} · tasa de cambios: {(simular.data.tasa_cedis * 100).toFixed(1)}%
               </p>
               <LineasList lineas={simular.data.lineas as Linea[]} />
             </div>

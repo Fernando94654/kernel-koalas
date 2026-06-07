@@ -27,7 +27,7 @@ export function NavSidebar() {
       {/* Navigation links */}
       <div className="flex-1 space-y-0.5 px-3 py-4">
         <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-widest text-muted">
-          Navigation
+          Menú
         </p>
         {NAV_TABS.map((tab) => {
           const active = tab.href === "/" ? path === "/" : path.startsWith(tab.href);

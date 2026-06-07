@@ -35,27 +35,27 @@ export default function DashboardPage() {
   const grafo = api.grafo.useQuery();
 
   if (eda.isLoading) return <Loading />;
-  if (eda.error ?? !eda.data) return <p className="text-sm text-rojo">Error loading data.</p>;
+  if (eda.error ?? !eda.data) return <p className="text-sm text-rojo">No pudimos cargar la información. Por favor, recarga la página.</p>;
 
   const d = eda.data;
   const m = d.metricas_globales;
 
   const cards: { label: string; value: string; accent?: boolean }[] = [
-    { label: "Orders",            value: fmt(m.total_pedidos) },
-    { label: "Lines",             value: fmt(m.total_lineas) },
-    { label: "Substitutions",     value: fmt(m.total_sustituciones), accent: true },
-    { label: "Substitution rate", value: m.tasa_sustitucion_lineas + "%" },
-    { label: "Affected orders",   value: m.pct_pedidos_con_sustitucion + "%" },
-    { label: "CEDIS",             value: fmt(m.cedis_unicos) },
+    { label: "Pedidos",           value: fmt(m.total_pedidos) },
+    { label: "Líneas",            value: fmt(m.total_lineas) },
+    { label: "Cambios realizados", value: fmt(m.total_sustituciones), accent: true },
+    { label: "Tasa de cambios",   value: m.tasa_sustitucion_lineas + "%" },
+    { label: "Pedidos con cambios", value: m.pct_pedidos_con_sustitucion + "%" },
+    { label: "Bodegas",           value: fmt(m.cedis_unicos) },
   ];
 
   return (
     <div>
       {/* Page header */}
       <div className="mb-5">
-        <h1 className="text-xl font-extrabold tracking-tight text-ink">Dashboard</h1>
+        <h1 className="text-xl font-extrabold tracking-tight text-ink">Resumen General</h1>
         <p className="mt-0.5 text-xs text-muted">
-          Substitution risk before orders leave the CEDIS.
+          Monitorea qué tan probable es que tus pedidos lleguen completos desde las bodegas.
         </p>
       </div>
 
@@ -81,10 +81,10 @@ export default function DashboardPage() {
 
       {/* Row 1 */}
       <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-        <Panel title="Order status">
+        <Panel title="Estado de pedidos">
           <Donut data={d.status_pedidos.map((s) => ({ label: `${s.status} (${s.pct}%)`, value: s.n }))} />
         </Panel>
-        <Panel title="Orders by country">
+        <Panel title="Pedidos por país">
           <VBar
             data={Object.entries(d.por_pais).map(([p, v]) => ({ label: p, value: v.n_pedidos }))}
             suffix=""
@@ -94,13 +94,13 @@ export default function DashboardPage() {
 
       {/* Row 2 */}
       <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-        <Panel title="Top 10 most-ordered SKUs">
+        <Panel title="Top 10 productos más pedidos">
           <HBar
             data={d.top_skus.map((s) => ({ label: s.sku, value: s.n_lineas }))}
             color={COLORS.azul}
           />
         </Panel>
-        <Panel title="Top SKUs by substitution rate">
+        <Panel title="Productos con más cambios">
           <HBar
             data={d.top_skus_por_tasa.slice(0, 10).map((s) => ({
               label: s.sku,
@@ -112,7 +112,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Full-width: CEDIS impact rate */}
-      <Panel title="Impact rate by CEDIS (top 15)" className="mb-4">
+      <Panel title="Bodegas con más cambios (top 15)" className="mb-4">
         <VBar
           data={d.top_cedis.slice(0, 15).map((c) => ({
             label: c.cedis,
@@ -125,8 +125,8 @@ export default function DashboardPage() {
 
       {/* Full-width: substitution pairs */}
       <Panel
-        title="Top 10 substitution pairs"
-        subtitle="origin → destination (frequency)"
+        title="Top 10 cambios más frecuentes"
+        subtitle="producto original → reemplazo (frecuencia)"
         className="mb-4"
       >
         <HBar
@@ -140,8 +140,8 @@ export default function DashboardPage() {
 
       {/* Full-width: D3 substitution network */}
       <Panel
-        title="Substitution network"
-        subtitle="Most active SKUs · drag nodes to explore"
+        title="Red de productos relacionados"
+        subtitle="Los productos que más se sustituyen entre sí · arrastra para explorar"
       >
         {grafo.data ? (
           <NetworkGraph nodes={grafo.data.nodes} links={grafo.data.links} height={420} />
