@@ -410,6 +410,7 @@ export default function PedidoPage() {
   const [qty,    setQty]    = useState(1);
   const [lineas, setLineas] = useState<{ nombre_sku: string; quantity: number }[]>([]);
   const simular = api.simular.useMutation();
+  const registrar = api.registrarPedido.useMutation();
 
   const cedisValid = cat?.cedis.includes(cedis) ?? false;
   const skuValid = cat?.skus.includes(sku) ?? false;
@@ -600,7 +601,7 @@ export default function PedidoPage() {
             </button>
             <button
               className="btn-ghost"
-              onClick={() => { setLineas([]); simular.reset(); }}
+              onClick={() => { setLineas([]); simular.reset(); registrar.reset(); }}
             >
               Limpiar
             </button>
@@ -614,6 +615,44 @@ export default function PedidoPage() {
                 {" · "}tasa de cambios histórica del CEDIS: {(simular.data.tasa_cedis * 100).toFixed(1)}%
               </p>
               <LineasCards lineas={simular.data.lineas as Linea[]} />
+
+              {/* Registrar el pedido */}
+              {!registrar.data && (
+                <button
+                  className="btn w-full"
+                  disabled={registrar.isPending}
+                  onClick={() => registrar.mutate({ cedis, lineas })}
+                >
+                  {registrar.isPending ? "Registrando…" : "Registrar este pedido"}
+                </button>
+              )}
+
+              {registrar.data && (
+                <div
+                  className="rounded-2xl px-4 py-4"
+                  style={{
+                    border: `1px solid ${nivelColor.Verde}55`,
+                    background: `${nivelColor.Verde}12`,
+                  }}
+                >
+                  <p className="text-[14px] font-bold" style={{ color: nivelColor.Verde }}>
+                    ✅ Pedido registrado
+                  </p>
+                  <p className="mt-1 text-[11px] text-muted">
+                    ID: <span className="font-mono text-ink">{registrar.data.id_pedido}</span>
+                  </p>
+                  <p className="mt-1 text-[11px] text-muted">
+                    Te avisaremos antes del envío si alguno de tus productos podría venir cambiado.
+                  </p>
+                  <a
+                    href={`/?id=${registrar.data.id_pedido}`}
+                    className="mt-2 inline-block text-[11px] font-semibold underline"
+                    style={{ color: nivelColor.Verde }}
+                  >
+                    Ver mi pedido →
+                  </a>
+                </div>
+              )}
             </div>
           )}
         </section>

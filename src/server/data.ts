@@ -128,6 +128,30 @@ export async function simular(cedis: string, lineas: { nombre_sku: string; quant
   };
 }
 
+// Registra un pedido nuevo (origen: simulador). Inserta en `orders` con flag
+// `simulated: true` para no contaminar agregados históricos; el campo cabecera
+// `business_unit` se infiere por consistencia visual cuando se reabre por id.
+export async function registrarPedido(cedis: string, lineas: { nombre_sku: string; quantity: number }[]) {
+  const db = await getDb();
+  // Genera un id único pequeño (formato distinguible de los reales: prefijo 1).
+  const id = "1" + Date.now().toString() + Math.floor(Math.random() * 1000).toString().padStart(3, "0");
+  const key = pedidoKey(id);
+  await db.collection("orders").insertOne({
+    _id: key as never,
+    customer_id: null,
+    cedis,
+    pais: null,
+    business_unit: null,
+    status_final: "Registrado",
+    total: null,
+    lineas: lineas.map((l) => ({ nombre_sku: l.nombre_sku.trim(), quantity: l.quantity })),
+    ordenes: 1,
+    simulated: true,
+    created_at: new Date(),
+  });
+  return { id_pedido: key };
+}
+
 export async function getPedido(idRaw: string) {
   const db = await getDb();
   const key = pedidoKey(idRaw);
