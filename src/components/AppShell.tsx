@@ -18,7 +18,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className="app-shell">
       {/* ── Full-width sticky header ── */}
       <header className="app-header">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/20 text-xl backdrop-blur-sm">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white p-1 shadow-sm">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/arca-logo.png" alt="Arca Continental" className="h-full w-full object-contain" />
         </div>
         <div className="flex-1 leading-tight">
           <div className="font-extrabold tracking-tight">Order Rescue</div>

@@ -16,11 +16,9 @@ export function NavSidebar() {
       {/* Brand anchor */}
       <div className="border-b px-5 py-5" style={{ borderColor: "var(--color-border)" }}>
         <div className="flex items-center gap-3">
-          <div
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-lg text-white shadow-fab"
-            style={{ background: "linear-gradient(120deg, #C20000 0%, #8F0000 100%)" }}
-          >
-            🥤
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-white p-1">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/arca-logo.png" alt="Arca Continental" className="h-full w-full object-contain" />
           </div>
           <div>
             <div className="text-[15px] font-extrabold tracking-tight text-ink">Order Rescue</div>
