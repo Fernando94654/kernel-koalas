@@ -14,17 +14,23 @@ export type ChatMsg = { role: "system" | "user" | "assistant"; content: string }
 async function buildContext(query: string) {
   const q = query.toLowerCase();
   const eda = await getEda();
-  const ctx: Record<string, unknown> = { metricas_globales: eda.metricas_globales };
 
-  if (/cedis|centro|distribuc|riesgo|problema|zona|rojo/.test(q))
-    ctx.top_cedis_riesgosos = eda.top_cedis.slice(0, 10);
-  if (/sku|producto|sustitu|reemplaz|coca|topo|ciel|agua|leche|yogurt/.test(q)) {
-    ctx.top_skus_sustituidos = eda.top_skus_por_tasa.slice(0, 10);
-    ctx.top_pares_sustitucion = eda.top_pares.slice(0, 10);
-  }
+  // Always include top substituted products and pairs — most useful for clients
+  const ctx: Record<string, unknown> = {
+    productos_con_mas_cambios: eda.top_skus_por_tasa.slice(0, 12),
+    cambios_mas_frecuentes: eda.top_pares.slice(0, 10),
+  };
+
+  if (/bodega|zona|centro|riesgo|problema|rojo|segur/.test(q))
+    ctx.bodegas_con_mas_cambios = eda.top_cedis.slice(0, 10);
+
   if (/país|pais|méxico|mexico|ecuador|perú|peru|argentina/.test(q))
     ctx.por_pais = eda.por_pais;
 
+  if (/cuántos|cuantos|total|estadística|estadistica|general/.test(q))
+    ctx.resumen_general = eda.metricas_globales;
+
+  // If query contains an order ID, fetch its score
   const m = query.replace(/[.,]/g, "").match(/\d{10,}/);
   if (m) {
     const ps = await getPedidoScore(m[0]!);
@@ -34,21 +40,25 @@ async function buildContext(query: string) {
 }
 
 function systemPrompt(ctx: Record<string, unknown>): string {
-  return `Eres un analista de operaciones de Arca Continental especializado en el sistema Order Rescue. Tu rol es ayudar a supervisores de CEDIS, gerentes de operaciones y equipos comerciales a entender los patrones de sustitución de pedidos.
+  return `Eres el asistente de Order Rescue, una app que ayuda a dueños de tienda, restaurantes y negocios a saber si sus pedidos de bebidas y productos Arca Continental llegarán completos.
 
-Responde siempre en español, de forma clara y concisa. Cuando des números, sé preciso. Si no tienes información suficiente para responder, dilo honestamente.
+Habla de forma amigable, simple y en español. Evita términos técnicos — usa "bodega" en vez de CEDIS, "producto" en vez de SKU, "cambio" o "reemplazo" en vez de "sustitución". El usuario es un tendero o dueño de negocio, no un técnico.
 
-CONTEXTO ACTUAL DEL SISTEMA (datos reales):
+Tu objetivo es responder preguntas como:
+- ¿Mi producto va a llegar o lo van a cambiar?
+- ¿Por qué producto me lo reemplazarían?
+- ¿Qué productos tienen más probabilidad de cambio?
+- ¿Hay algún problema con mi bodega?
+
+Cuando el riesgo de cambio es alto, tranquiliza al cliente y dile qué producto alternativo suele llegar en su lugar. Cuando todo está bien, confírmalo con seguridad.
+
+DATOS REALES DEL SISTEMA (úsalos para responder con precisión):
 ${JSON.stringify(ctx, null, 2)}
 
-GLOSARIO:
-- CEDIS: Centro de Distribución
-- Sustitución: cuando el producto pedido no está disponible y se reemplaza por otro
-- Tasa de afectación: % de pedidos de un CEDIS que tuvieron al menos 1 sustitución
-- Score de riesgo: probabilidad estimada de sustitución (0-1), verde <0.08, amarillo 0.08-0.14, rojo >0.14
-- S1: señal por (CEDIS, SKU), S2: señal global por SKU, S3: señal por CEDIS
-
-Sé útil, directo y orientado a acción. Cuando identifiques un problema, sugiere qué hacer.`;
+Reglas:
+- Nunca menciones términos como "score", "S1/S2/S3", "tasa de afectación" ni "CEDIS" — usa lenguaje cotidiano.
+- Si no tienes datos suficientes para responder, dilo con amabilidad y sugiere al usuario que use el simulador de pedidos.
+- Respuestas cortas y directas. Máximo 3-4 oraciones salvo que pregunten algo complejo.`;
 }
 
 async function callLLM(messages: ChatMsg[]): Promise<{ text: string; provider: string | null }> {
