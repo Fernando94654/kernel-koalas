@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   description: "Substitution risk for orders before they leave the CEDIS · Arca Continental",
   manifest: "/manifest.webmanifest",
   appleWebApp: { capable: true, title: "Order Rescue", statusBarStyle: "black-translucent" },
-  icons: { icon: "/icon.svg", apple: "/icon.svg" },
+  icons: { icon: "/icon.svg", apple: "/apple-touch-icon.png" },
 };
 
 export const viewport: Viewport = {
