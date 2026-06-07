@@ -55,33 +55,51 @@ export function ChatWidget() {
 
   return (
     <>
-      {/* FAB dentro de la columna del teléfono */}
+      {/* Floating action button */}
       <div className="pointer-events-none fixed bottom-0 left-1/2 z-40 w-full max-w-[480px] -translate-x-1/2">
-        <button onClick={() => setOpen(true)}
-          className="pointer-events-auto absolute bottom-[84px] right-4 flex h-14 w-14 items-center justify-center rounded-full bg-rojo text-2xl text-white shadow-fab active:scale-95"
-          aria-label="Abrir asistente IA">
+        <button
+          onClick={() => setOpen(true)}
+          className="pointer-events-auto absolute right-4 flex h-14 w-14 items-center justify-center rounded-full bg-rojo text-2xl text-white shadow-fab transition-transform active:scale-95"
+          style={{ bottom: "var(--chat-fab-bottom)" }}
+          aria-label="Open AI assistant"
+        >
           💬
         </button>
       </div>
 
       {open && (
         <div className="fixed inset-0 z-50 flex justify-center" onClick={() => setOpen(false)}>
-          <div className="absolute inset-0 bg-black/30" />
-          <div className="relative flex h-[88dvh] w-full max-w-[480px] flex-col self-end rounded-t-3xl bg-white shadow-2xl"
-               onClick={(e) => e.stopPropagation()}>
-            {/* head */}
-            <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
-              <div>
-                <div className="font-bold">🤖 Asistente IA</div>
-                <div className="text-[11px] text-muted">{provider ?? "Order Rescue"}</div>
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+          <div
+            className="relative flex h-[88dvh] w-full max-w-[480px] flex-col self-end rounded-t-3xl shadow-2xl md:max-w-[520px]"
+            style={{ background: "var(--color-card)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div
+              className="flex items-center justify-between px-4 py-3"
+              style={{ borderBottom: "1px solid var(--color-border)" }}
+            >
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-rojo text-sm text-white">
+                  🤖
+                </div>
+                <div>
+                  <div className="font-bold text-ink">AI Assistant</div>
+                  <div className="text-[11px] text-muted">{provider ?? "Order Rescue"}</div>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <button onClick={clear} className="text-xs text-muted">Limpiar</button>
-                <button onClick={() => setOpen(false)} className="text-2xl leading-none text-muted">×</button>
+              <div className="flex items-center gap-3">
+                <button onClick={clear} className="text-xs font-medium text-muted hover:text-ink">
+                  Clear
+                </button>
+                <button onClick={() => setOpen(false)} className="text-xl leading-none text-muted hover:text-ink">
+                  ×
+                </button>
               </div>
             </div>
 
-            {/* messages */}
+            {/* Messages */}
             <div ref={scrollRef} className="no-scrollbar flex-1 space-y-2.5 overflow-y-auto p-4">
               {visible.length === 0 && (
                 <div className="text-sm text-muted">
@@ -89,39 +107,62 @@ export function ChatWidget() {
                 </div>
               )}
               {visible.map((m, i) => (
-                <div key={i}
+                <div
+                  key={i}
                   className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-3.5 py-2 text-sm ${
-                    m.role === "user" ? "ml-auto rounded-br-md bg-rojo text-white" : "mr-auto rounded-bl-md bg-gray-100"
-                  }`}>
+                    m.role === "user"
+                      ? "ml-auto rounded-br-md bg-rojo text-white"
+                      : "mr-auto rounded-bl-md text-ink"
+                  }`}
+                  style={m.role !== "user" ? { background: "var(--color-surface)" } : undefined}
+                >
                   {m.content}
                 </div>
               ))}
               {chat.isPending && (
-                <div className="mr-auto rounded-2xl rounded-bl-md bg-gray-100 px-3.5 py-2 text-sm text-muted">
-                  <span className="spinner" /> Analizando datos…
+                <div
+                  className="mr-auto rounded-2xl rounded-bl-md px-3.5 py-2 text-sm text-muted"
+                  style={{ background: "var(--color-surface)" }}
+                >
+                  <span className="spinner" /> Analyzing data…
                 </div>
               )}
             </div>
 
-            {/* quick chips */}
+            {/* Quick suggestion chips */}
             {visible.length === 0 && (
               <div className="no-scrollbar flex gap-2 overflow-x-auto px-4 pb-2">
                 {QUICK.map((q) => (
-                  <button key={q} onClick={() => send(q)}
-                    className="shrink-0 rounded-full border border-gray-300 px-3 py-1.5 text-xs active:bg-gray-100">
+                  <button
+                    key={q}
+                    onClick={() => send(q)}
+                    className="shrink-0 rounded-full px-3 py-1.5 text-xs font-medium text-muted transition-colors hover:text-ink"
+                    style={{ border: "1px solid var(--color-border)" }}
+                  >
                     {q}
                   </button>
                 ))}
               </div>
             )}
 
-            {/* input */}
-            <div className="flex gap-2 border-t border-gray-200 p-3"
-                 style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 12px)" }}>
-              <input className="input" placeholder="Escribe tu pregunta…" value={input}
-                     onChange={(e) => setInput(e.target.value)}
-                     onKeyDown={(e) => e.key === "Enter" && send(input)} />
-              <button className="btn shrink-0" onClick={() => send(input)} disabled={chat.isPending}>Enviar</button>
+            {/* Input bar */}
+            <div
+              className="flex gap-2 p-3"
+              style={{
+                borderTop: "1px solid var(--color-border)",
+                paddingBottom: "calc(env(safe-area-inset-bottom) + 12px)",
+              }}
+            >
+              <input
+                className="input"
+                placeholder="Escribe tu pregunta…"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && send(input)}
+              />
+              <button className="btn shrink-0" onClick={() => send(input)} disabled={chat.isPending}>
+                Send
+              </button>
             </div>
           </div>
         </div>

@@ -1,13 +1,38 @@
 "use client";
 
 import {
-  Bar, BarChart, Cell, Legend, Pie, PieChart, ResponsiveContainer,
-  Tooltip, XAxis, YAxis,
+  Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart,
+  ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
 
 import { COLORS, truncate } from "~/lib/ui";
 
 type Datum = { label: string; value: number; color?: string; raw?: unknown };
+
+// Tooltip that reads CSS variables — works in both light and dark mode.
+function ChartTooltip({
+  active, payload, label, suffix = "",
+}: {
+  active?: boolean;
+  payload?: { value: number }[];
+  label?: string;
+  suffix?: string;
+}) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="chart-tooltip">
+      {label && <p className="chart-tooltip-label">{label}</p>}
+      <p className="chart-tooltip-value">
+        {Number(payload[0]!.value).toLocaleString("es-MX")}
+        {suffix}
+      </p>
+    </div>
+  );
+}
+
+// Axis tick color reads the CSS ink variable.
+const TICK_STYLE = { fill: "var(--color-muted)", fontSize: 10 } as const;
+const GRID_COLOR = "var(--color-border)";
 
 export function HBar({ data, height = 280, suffix = "", color = COLORS.azul }: {
   data: Datum[]; height?: number; suffix?: string; color?: string;
@@ -15,11 +40,19 @@ export function HBar({ data, height = 280, suffix = "", color = COLORS.azul }: {
   return (
     <ResponsiveContainer width="100%" height={height}>
       <BarChart layout="vertical" data={data} margin={{ left: 4, right: 16, top: 4, bottom: 4 }}>
-        <XAxis type="number" tick={{ fontSize: 10 }} tickFormatter={(v) => `${v}${suffix}`} />
-        <YAxis type="category" dataKey="label" width={120} tick={{ fontSize: 10 }}
-               tickFormatter={(v: string) => truncate(v, 18)} />
-        <Tooltip formatter={(v: number) => `${v}${suffix}`} labelFormatter={(l) => l} />
-        <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+        <CartesianGrid strokeDasharray="3 3" stroke={GRID_COLOR} horizontal={false} />
+        <XAxis
+          type="number" tick={TICK_STYLE}
+          tickFormatter={(v) => `${v}${suffix}`}
+          axisLine={false} tickLine={false}
+        />
+        <YAxis
+          type="category" dataKey="label" width={130} tick={TICK_STYLE}
+          tickFormatter={(v: string) => truncate(v, 20)}
+          axisLine={false} tickLine={false}
+        />
+        <Tooltip content={<ChartTooltip suffix={suffix} />} />
+        <Bar dataKey="value" radius={[0, 5, 5, 0]}>
           {data.map((d, i) => <Cell key={i} fill={d.color ?? color} />)}
         </Bar>
       </BarChart>
@@ -33,10 +66,18 @@ export function VBar({ data, height = 260, suffix = "", color = COLORS.rojo }: {
   return (
     <ResponsiveContainer width="100%" height={height}>
       <BarChart data={data} margin={{ left: -10, right: 8, top: 8, bottom: 4 }}>
-        <XAxis dataKey="label" tick={{ fontSize: 9 }} interval={0} angle={-35} textAnchor="end" height={50} />
-        <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `${v}${suffix}`} />
-        <Tooltip formatter={(v: number) => `${v}${suffix}`} />
-        <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+        <CartesianGrid strokeDasharray="3 3" stroke={GRID_COLOR} vertical={false} />
+        <XAxis
+          dataKey="label" tick={TICK_STYLE} interval={0}
+          angle={-35} textAnchor="end" height={50}
+          axisLine={false} tickLine={false}
+        />
+        <YAxis
+          tick={TICK_STYLE} tickFormatter={(v) => `${v}${suffix}`}
+          axisLine={false} tickLine={false}
+        />
+        <Tooltip content={<ChartTooltip suffix={suffix} />} />
+        <Bar dataKey="value" radius={[5, 5, 0, 0]}>
           {data.map((d, i) => <Cell key={i} fill={d.color ?? color} />)}
         </Bar>
       </BarChart>
@@ -49,10 +90,15 @@ export function Donut({ data, height = 240 }: { data: Datum[]; height?: number }
   return (
     <ResponsiveContainer width="100%" height={height}>
       <PieChart>
-        <Pie data={data} dataKey="value" nameKey="label" innerRadius={50} outerRadius={80} paddingAngle={2}>
-          {data.map((d, i) => <Cell key={i} fill={d.color ?? palette[i % palette.length]} />)}
+        <Pie
+          data={data} dataKey="value" nameKey="label"
+          innerRadius={58} outerRadius={90} paddingAngle={3}
+        >
+          {data.map((d, i) => (
+            <Cell key={i} fill={d.color ?? palette[i % palette.length]} stroke="none" />
+          ))}
         </Pie>
-        <Legend wrapperStyle={{ fontSize: 11 }} />
+        <Legend wrapperStyle={{ fontSize: 11, color: "var(--color-muted)" }} />
         <Tooltip formatter={(v: number) => v.toLocaleString("es-MX")} />
       </PieChart>
     </ResponsiveContainer>

@@ -2,58 +2,275 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Design tokens: light mode ─────────────────────────────────────── */
 :root {
-  --rojo: #e3001b;
-  --amarillo: #f5a623;
-  --verde: #2eae5b;
+  /* Semantic palette — all components reference these */
+  --color-ink:     #18181B;
+  --color-muted:   #71717A;
+  --color-surface: #F4F4F6;
+  --color-border:  #E4E4E8;
+  --color-card:    #FFFFFF;
+
+  /* Layout backgrounds */
+  --color-page:    #EDEDF0;
+  --color-shell:   #EDEDF0;
+  --color-sidebar: #FFFFFF;
+
+  /* Accent (subtle red for active states) */
+  --color-nav-active-bg:   #FFF0F1;
+  --color-nav-active-text: #CC0023;
+
+  /* Brand reds (used by badge/dot CSS classes) */
+  --rojo:      #CC0023;
+  --rojo-dark: #9A001A;
+  --amarillo:  #F5A623;
+  --verde:     #16A34A;
+
+  /* Chat FAB offset: above bottom nav on mobile */
+  --chat-fab-bottom: 84px;
 }
 
-html, body {
-  height: 100%;
+/* ── Design tokens: dark mode ──────────────────────────────────────── */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-ink:     #F0F0F5;
+    --color-muted:   #8888A0;
+    --color-surface: #1C1C24;
+    --color-border:  #2C2C3A;
+    --color-card:    #16161E;
+
+    /* Sidebar is visibly elevated above the page */
+    --color-page:    #0C0C10;
+    --color-shell:   #0C0C10;
+    --color-sidebar: #141420;
+
+    --color-nav-active-bg:   #2A0D14;
+    --color-nav-active-text: #FF6B7A;
+
+    /* Brighter reds for readability on dark backgrounds (dots, badges) */
+    --rojo:      #FF4D6A;
+    --rojo-dark: #CC0023;
+    --amarillo:  #FFC04D;
+    --verde:     #4ADE80;
+  }
 }
+
+@media (min-width: 768px) {
+  :root { --chat-fab-bottom: 32px; }
+}
+
+/* ── Base ──────────────────────────────────────────────────────────── */
+html, body { height: 100%; }
+
 body {
-  background: #eceef1;
+  background: var(--color-page);
+  color: var(--color-ink);
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior-y: none;
 }
 
-/* Columna estilo "teléfono": app móvil centrada también en desktop */
-.phone {
-  max-width: 480px;
-  margin: 0 auto;
+/* ── App shell ─────────────────────────────────────────────────────── */
+.app-shell {
   min-height: 100dvh;
-  background: #f4f5f7;
-  position: relative;
-  box-shadow: 0 0 40px rgba(0, 0, 0, .08);
   display: flex;
   flex-direction: column;
+  background: var(--color-shell);
 }
 
+/* ── Header ────────────────────────────────────────────────────────── */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  height: 60px;
+  /* Red gradient stays consistent in both modes */
+  background: linear-gradient(135deg, #CC0023 0%, #9A001A 100%);
+  box-shadow: 0 1px 0 rgba(0,0,0,.20), 0 2px 12px rgba(0,0,0,.25);
+  display: flex;
+  align-items: center;
+  padding: calc(env(safe-area-inset-top) + 10px) 16px 10px;
+  gap: 12px;
+  color: white;
+}
+
+@media (min-width: 768px) {
+  .app-header { padding: 0 32px; }
+}
+
+/* ── Sidebar (desktop only) ────────────────────────────────────────── */
+.app-sidebar { display: none; }
+
+@media (min-width: 768px) {
+  .app-sidebar {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 60px;
+    left: 0;
+    width: 256px;
+    height: calc(100dvh - 60px);
+    background: var(--color-sidebar);
+    border-right: 1px solid var(--color-border);
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.06);
+    overflow-y: auto;
+    z-index: 30;
+    transition: background 0.3s ease, border-color 0.3s ease;
+  }
+}
+
+@media (min-width: 768px) and (prefers-color-scheme: dark) {
+  .app-sidebar {
+    box-shadow: 2px 0 16px rgba(0, 0, 0, 0.4);
+  }
+}
+
+/* ── Bottom nav ────────────────────────────────────────────────────── */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  z-index: 40;
+  width: 100%;
+  border-top: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-card) 95%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* ── Main content area ─────────────────────────────────────────────── */
 .app-main {
   flex: 1;
   padding: 16px 16px calc(96px + env(safe-area-inset-bottom));
   overflow-x: hidden;
 }
 
-@layer components {
-  .badge { @apply inline-block rounded-full px-2.5 py-0.5 text-xs font-bold text-white; }
-  .badge-Rojo { background: var(--rojo); }
-  .badge-Amarillo { background: var(--amarillo); }
-  .badge-Verde { background: var(--verde); }
-  .card { @apply rounded-2xl border border-gray-200 bg-white p-4 shadow-card; }
-  .pill { @apply rounded-full border border-gray-300 bg-white px-3 py-1 text-sm; }
-  .input { @apply w-full rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-[15px] outline-none focus:border-rojo; }
-  .btn { @apply rounded-xl bg-rojo px-4 py-2.5 font-semibold text-white active:bg-rojo-dark disabled:opacity-50; }
-  .btn-ghost { @apply rounded-xl border border-gray-300 bg-white px-4 py-2.5 font-medium text-ink active:bg-gray-100; }
+@media (min-width: 768px) {
+  .app-main {
+    margin-left: 256px;
+    padding: 32px 40px 48px;
+  }
 }
 
-.dot-Rojo { color: var(--rojo); }
-.dot-Amarillo { color: var(--amarillo); }
-.dot-Verde { color: var(--verde); }
+/* ── Components ────────────────────────────────────────────────────── */
+@layer components {
+  .badge {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold tracking-wide text-white;
+  }
+  .badge-Rojo     { background: var(--rojo); }
+  .badge-Amarillo { background: var(--amarillo); }
+  .badge-Verde    { background: var(--verde); }
 
-/* scroll suave en listas */
+  .card {
+    border-radius: 1rem;
+    border: 1px solid var(--color-border);
+    background: var(--color-card);
+    padding: 1rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.05);
+    transition: box-shadow 0.15s ease, transform 0.15s ease, background 0.3s ease, border-color 0.3s ease;
+  }
+
+  .pill {
+    @apply rounded-full border px-3 py-1 text-sm font-medium;
+    border-color: var(--color-border);
+    background: var(--color-card);
+    color: var(--color-ink);
+    transition: border-color 0.12s ease, color 0.12s ease;
+  }
+
+  .input {
+    @apply w-full rounded-xl px-3 py-2.5 text-[15px] outline-none;
+    border: 1px solid var(--color-border);
+    background: var(--color-card);
+    color: var(--color-ink);
+    transition: border-color 0.12s ease, box-shadow 0.12s ease;
+  }
+  .input:focus {
+    border-color: #CC0023;
+    box-shadow: 0 0 0 3px rgba(204,0,35,.15);
+  }
+
+  .input::placeholder { color: var(--color-muted); }
+
+  /* Native select dropdown needs explicit background in dark mode */
+  .input option {
+    background: var(--color-card);
+    color: var(--color-ink);
+  }
+
+  .btn {
+    @apply rounded-xl px-4 py-2.5 font-semibold text-white;
+    background: #CC0023;
+    transition: background-color 0.12s ease, box-shadow 0.12s ease, transform 0.1s ease;
+  }
+  .btn:active   { transform: scale(0.97); background: #9A001A; }
+  .btn:disabled { @apply opacity-50 pointer-events-none; }
+
+  .btn-ghost {
+    @apply rounded-xl px-4 py-2.5 font-medium;
+    border: 1px solid var(--color-border);
+    background: var(--color-card);
+    color: var(--color-ink);
+    transition: background-color 0.12s ease, border-color 0.12s ease;
+  }
+  .btn-ghost:active { background: var(--color-surface); }
+}
+
+/* ── Hover effects (pointer devices only) ──────────────────────────── */
+@media (hover: hover) {
+  .card:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,.12), 0 2px 6px rgba(0,0,0,.08);
+    transform: translateY(-1px);
+  }
+  .pill:hover      { border-color: #CC0023; color: #CC0023; }
+  .input:focus     { border-color: #CC0023; box-shadow: 0 0 0 3px rgba(204,0,35,.15); }
+  .btn:hover       { background: #B5001F; box-shadow: 0 4px 12px rgba(204,0,35,.35); }
+  .btn-ghost:hover { background: var(--color-surface); }
+}
+
+/* ── Risk level colors ─────────────────────────────────────────────── */
+.dot-Rojo    { color: var(--rojo); }
+.dot-Amarillo { color: var(--amarillo); }
+.dot-Verde   { color: var(--verde); }
+
+/* ── Scrollbar suppression ─────────────────────────────────────────── */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
+/* ── Loading spinner ───────────────────────────────────────────────── */
 @keyframes spin { to { transform: rotate(360deg); } }
-.spinner { width: 16px; height: 16px; border: 2px solid #d1d5db; border-top-color: var(--rojo); border-radius: 50%; display: inline-block; animation: spin .8s linear infinite; vertical-align: middle; }
+.spinner {
+  width: 16px; height: 16px;
+  border: 2px solid var(--color-border);
+  border-top-color: var(--rojo);
+  border-radius: 50%; display: inline-block;
+  animation: spin .8s linear infinite; vertical-align: middle;
+}
+
+/* ── Pulse skeleton — slightly lighter than card ───────────────────── */
+.skeleton {
+  background: var(--color-surface);
+  border-radius: 1rem;
+  border: 1px solid var(--color-border);
+}
+
+/* ── Recharts tooltip ──────────────────────────────────────────────── */
+.chart-tooltip {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 8px 12px;
+  box-shadow: 0 4px 16px rgba(0,0,0,.15);
+  font-size: 13px;
+  min-width: 120px;
+}
+.chart-tooltip-label {
+  font-weight: 600;
+  color: var(--color-ink);
+  margin-bottom: 4px;
+}
+.chart-tooltip-value {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--rojo);
+}
