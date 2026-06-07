@@ -5,26 +5,26 @@
 /* ── Design tokens: light mode ─────────────────────────────────────── */
 :root {
   /* Semantic palette — all components reference these */
-  --color-ink:     #18181B;
-  --color-muted:   #71717A;
-  --color-surface: #F4F4F6;
-  --color-border:  #E4E4E8;
+  --color-ink:     #1A1A1A;
+  --color-muted:   #717171;
+  --color-surface: #F6F6F7;
+  --color-border:  #ECECEE;
   --color-card:    #FFFFFF;
 
   /* Layout backgrounds */
-  --color-page:    #EDEDF0;
-  --color-shell:   #EDEDF0;
+  --color-page:    #F2F2F4;
+  --color-shell:   #F2F2F4;
   --color-sidebar: #FFFFFF;
 
   /* Accent (subtle red for active states) */
-  --color-nav-active-bg:   #FFF0F1;
-  --color-nav-active-text: #CC0023;
+  --color-nav-active-bg:   #FCF0F0;
+  --color-nav-active-text: #C20000;
 
-  /* Brand reds (used by badge/dot CSS classes) */
-  --rojo:      #CC0023;
-  --rojo-dark: #9A001A;
-  --amarillo:  #F5A623;
-  --verde:     #16A34A;
+  /* Brand reds (used by badge/dot CSS classes) — Arca Continental */
+  --rojo:      #C20000;
+  --rojo-dark: #8F0000;
+  --amarillo:  #E8A317;
+  --verde:     #15924B;
 
   /* Chat FAB offset: above bottom nav on mobile */
   --chat-fab-bottom: 84px;
@@ -33,25 +33,25 @@
 /* ── Design tokens: dark mode ──────────────────────────────────────── */
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-ink:     #F0F0F5;
-    --color-muted:   #8888A0;
-    --color-surface: #1C1C24;
-    --color-border:  #2C2C3A;
-    --color-card:    #16161E;
+    --color-ink:     #F2F2F4;
+    --color-muted:   #8A8A92;
+    --color-surface: #1A1A1F;
+    --color-border:  #2A2A30;
+    --color-card:    #141418;
 
     /* Sidebar is visibly elevated above the page */
-    --color-page:    #0C0C10;
-    --color-shell:   #0C0C10;
-    --color-sidebar: #141420;
+    --color-page:    #0B0B0D;
+    --color-shell:   #0B0B0D;
+    --color-sidebar: #131317;
 
-    --color-nav-active-bg:   #2A0D14;
-    --color-nav-active-text: #FF6B7A;
+    --color-nav-active-bg:   #2A0C0C;
+    --color-nav-active-text: #FF6B6B;
 
     /* Brighter reds for readability on dark backgrounds (dots, badges) */
-    --rojo:      #FF4D6A;
-    --rojo-dark: #CC0023;
-    --amarillo:  #FFC04D;
-    --verde:     #4ADE80;
+    --rojo:      #FF5252;
+    --rojo-dark: #C20000;
+    --amarillo:  #F5BE4B;
+    --verde:     #34C77B;
   }
 }
 
@@ -65,8 +65,21 @@ html, body { height: 100%; }
 body {
   background: var(--color-page);
   color: var(--color-ink);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior-y: none;
+}
+
+/* Headings inherit the geometric sans with tight tracking for an editorial feel */
+h1, h2, h3 { letter-spacing: -0.015em; }
+
+/* Monospace accent for labels / codes / numeric tags */
+.font-mono,
+.label,
+[class*="tracking-wid"] {
+  font-family: var(--font-mono), ui-monospace, monospace;
 }
 
 /* ── App shell ─────────────────────────────────────────────────────── */
@@ -84,8 +97,8 @@ body {
   z-index: 40;
   height: 60px;
   /* Red gradient stays consistent in both modes */
-  background: linear-gradient(135deg, #CC0023 0%, #9A001A 100%);
-  box-shadow: 0 1px 0 rgba(0,0,0,.20), 0 2px 12px rgba(0,0,0,.25);
+  background: linear-gradient(120deg, #C20000 0%, #8F0000 100%);
+  box-shadow: 0 1px 0 rgba(0,0,0,.08), 0 4px 16px rgba(143,0,0,.18);
   display: flex;
   align-items: center;
   padding: calc(env(safe-area-inset-top) + 10px) 16px 10px;
@@ -162,12 +175,12 @@ body {
   .badge-Verde    { background: var(--verde); }
 
   .card {
-    border-radius: 1rem;
+    border-radius: 1.25rem;
     border: 1px solid var(--color-border);
     background: var(--color-card);
-    padding: 1rem;
-    box-shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.05);
-    transition: box-shadow 0.15s ease, transform 0.15s ease, background 0.3s ease, border-color 0.3s ease;
+    padding: 1.25rem;
+    box-shadow: 0 1px 2px rgba(16,16,24,.04), 0 1px 3px rgba(16,16,24,.05);
+    transition: box-shadow 0.2s ease, transform 0.2s ease, background 0.3s ease, border-color 0.3s ease;
   }
 
   .pill {
@@ -179,15 +192,15 @@ body {
   }
 
   .input {
-    @apply w-full rounded-xl px-3 py-2.5 text-[15px] outline-none;
+    @apply w-full rounded-xl px-3.5 py-2.5 text-[15px] outline-none;
     border: 1px solid var(--color-border);
     background: var(--color-card);
     color: var(--color-ink);
     transition: border-color 0.12s ease, box-shadow 0.12s ease;
   }
   .input:focus {
-    border-color: #CC0023;
-    box-shadow: 0 0 0 3px rgba(204,0,35,.15);
+    border-color: var(--rojo);
+    box-shadow: 0 0 0 3px rgba(194,0,0,.12);
   }
 
   .input::placeholder { color: var(--color-muted); }
@@ -200,10 +213,10 @@ body {
 
   .btn {
     @apply rounded-xl px-4 py-2.5 font-semibold text-white;
-    background: #CC0023;
+    background: var(--rojo);
     transition: background-color 0.12s ease, box-shadow 0.12s ease, transform 0.1s ease;
   }
-  .btn:active   { transform: scale(0.97); background: #9A001A; }
+  .btn:active   { transform: scale(0.97); background: var(--rojo-dark); }
   .btn:disabled { @apply opacity-50 pointer-events-none; }
 
   .btn-ghost {
@@ -219,12 +232,12 @@ body {
 /* ── Hover effects (pointer devices only) ──────────────────────────── */
 @media (hover: hover) {
   .card:hover {
-    box-shadow: 0 4px 16px rgba(0,0,0,.12), 0 2px 6px rgba(0,0,0,.08);
-    transform: translateY(-1px);
+    box-shadow: 0 6px 24px rgba(16,16,24,.08), 0 2px 8px rgba(16,16,24,.05);
+    transform: translateY(-2px);
   }
-  .pill:hover      { border-color: #CC0023; color: #CC0023; }
-  .input:focus     { border-color: #CC0023; box-shadow: 0 0 0 3px rgba(204,0,35,.15); }
-  .btn:hover       { background: #B5001F; box-shadow: 0 4px 12px rgba(204,0,35,.35); }
+  .pill:hover      { border-color: var(--rojo); color: var(--rojo); }
+  .input:focus     { border-color: var(--rojo); box-shadow: 0 0 0 3px rgba(194,0,0,.12); }
+  .btn:hover       { background: var(--rojo-dark); box-shadow: 0 4px 14px rgba(194,0,0,.30); }
   .btn-ghost:hover { background: var(--color-surface); }
 }
 

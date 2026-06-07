@@ -28,7 +28,7 @@ export function NetworkGraph({ nodes, links, height = 360 }: {
     // Read theme colors at draw time
     const colorBorder = getCSSVar("--color-border", "#E5E8ED");
     const colorInk    = getCSSVar("--color-ink", "#1A1D23");
-    const colorRojo   = getCSSVar("--rojo", "#CC0023");
+    const colorRojo   = getCSSVar("--rojo", "#C20000");
 
     const N: Node[] = nodes.map((n) => ({ ...n }));
     const L: Link[] = links.map((l) => ({ ...l }));

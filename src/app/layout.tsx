@@ -1,7 +1,7 @@
 import "~/app/globals.css";
 
 import { type Metadata, type Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Hanken_Grotesk, JetBrains_Mono } from "next/font/google";
 
 import { TRPCReactProvider } from "~/trpc/react";
 import { SessionProviderWrapper } from "~/components/SessionProviderWrapper";
@@ -10,9 +10,17 @@ import { NavSidebar } from "~/components/NavSidebar";
 import { ChatWidget } from "~/components/ChatWidget";
 import { ServiceWorkerRegister } from "~/components/ServiceWorkerRegister";
 
-const inter = Inter({
+// Headline + body — geometric, friendly, on-brand for Arca Continental.
+const hanken = Hanken_Grotesk({
   subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-sans",
+  display: "swap",
+});
+
+// Labels, codes, numeric tags — monospaced for a clean, technical accent.
+const jetbrains = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
   display: "swap",
 });
 
@@ -25,7 +33,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#CC0023",
+  themeColor: "#C20000",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -34,7 +42,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es" className={inter.variable}>
+    <html lang="es" className={`${hanken.variable} ${jetbrains.variable}`}>
       <body>
         <SessionProviderWrapper>
         <TRPCReactProvider>

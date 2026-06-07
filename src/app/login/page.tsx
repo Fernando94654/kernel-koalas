@@ -9,7 +9,7 @@ export default function LoginPage() {
         {/* Logo */}
         <div
           className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl text-3xl shadow-fab"
-          style={{ background: "var(--rojo)" }}
+          style={{ background: "linear-gradient(120deg, #C20000 0%, #8F0000 100%)" }}
         >
           🥤
         </div>

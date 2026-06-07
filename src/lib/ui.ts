@@ -7,9 +7,9 @@ export const pct1 = (x: number) => (x * 100).toFixed(1) + "%";
 export const nivelEmoji: Record<Nivel, string> = { Rojo: "🔴", Amarillo: "🟡", Verde: "🟢" };
 
 export const COLORS = {
-  rojo: "#e3001b",
-  amarillo: "#f5a623",
-  verde: "#2eae5b",
+  rojo: "#C20000",
+  amarillo: "#E8A317",
+  verde: "#15924B",
   azul: "#2563eb",
   gris: "#9ca3af",
 };

@@ -59,8 +59,8 @@ export function ChatWidget() {
       <div className="pointer-events-none fixed bottom-0 left-1/2 z-40 w-full max-w-[480px] -translate-x-1/2">
         <button
           onClick={() => setOpen(true)}
-          className="pointer-events-auto absolute right-4 flex h-14 w-14 items-center justify-center rounded-full bg-rojo text-2xl text-white shadow-fab transition-transform active:scale-95"
-          style={{ bottom: "var(--chat-fab-bottom)" }}
+          className="pointer-events-auto absolute right-4 flex h-14 w-14 items-center justify-center rounded-full text-2xl text-white shadow-fab transition-transform active:scale-95"
+          style={{ bottom: "var(--chat-fab-bottom)", background: "linear-gradient(120deg, #C20000 0%, #8F0000 100%)" }}
           aria-label="Open AI assistant"
         >
           💬

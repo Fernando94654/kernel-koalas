@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { api } from "~/trpc/react";
 import { fmt, nivelColor } from "~/lib/ui";
+import { ProductThumb } from "~/components/ProductThumb";
 import type { Nivel } from "~/lib/model";
 
 type Linea = {
@@ -16,6 +17,12 @@ type Linea = {
 };
 
 type GroupedLinea = Linea & { count: number };
+
+const RIESGO_LABEL: Record<Nivel, string> = {
+  Rojo: "RIESGO ALTO",
+  Amarillo: "RIESGO MEDIO",
+  Verde: "RIESGO BAJO",
+};
 
 function SectionHeader({ title }: { title: string }) {
   return (
@@ -39,10 +46,10 @@ function RiskSummary({ lineas }: { lineas: Linea[] }) {
 
   const headline =
     bannerNivel === "Verde"
-      ? `✅ Tu pedido sale prácticamente completo`
+      ? `Tu pedido sale prácticamente completo`
       : bannerNivel === "Amarillo"
-        ? `⚠️ ${pct.toFixed(1)}% de tu pedido podría venir cambiado`
-        : `🚨 Alto riesgo: ${pct.toFixed(1)}% de tu pedido podría venir sustituido`;
+        ? `${pct.toFixed(1)}% de tu pedido podría venir cambiado`
+        : `Alto riesgo: ${pct.toFixed(1)}% de tu pedido podría venir sustituido`;
 
   const detail =
     unidadesEnRiesgo === 0
@@ -51,16 +58,18 @@ function RiskSummary({ lineas }: { lineas: Linea[] }) {
 
   return (
     <div
-      className="rounded-2xl px-4 py-4"
-      style={{
-        border: `1px solid ${color}55`,
-        background: `${color}12`,
-      }}
+      className="overflow-hidden rounded-2xl"
+      style={{ border: `1px solid ${color}40`, background: `${color}0F` }}
     >
-      <p className="text-[15px] font-bold leading-snug" style={{ color }}>
-        {headline}
-      </p>
-      <p className="mt-1 text-[12px] text-muted">{detail}</p>
+      <div className="flex items-stretch">
+        <span className="w-1 shrink-0" style={{ background: color }} />
+        <div className="px-4 py-3.5">
+          <p className="text-[15px] font-bold leading-snug" style={{ color }}>
+            {headline}
+          </p>
+          <p className="mt-1 text-[12px] text-muted">{detail}</p>
+        </div>
+      </div>
     </div>
   );
 }
@@ -102,77 +111,73 @@ function LineaCard({
   const sust = linea.sustitutos_probables[0];
 
   return (
-    <div
-      className="rounded-xl border bg-surface"
-      style={{
-        borderColor: enRiesgo ? `${color}55` : "var(--color-border)",
-      }}
-    >
-      {/* Encabezado de la línea */}
-      <div className="flex items-start justify-between gap-3 px-3 py-2.5">
-        <div className="min-w-0">
-          <p className="text-[13px] font-semibold leading-snug text-ink">
-            <span
-              className="mr-1.5 inline-block h-2 w-2 rounded-full align-middle"
-              style={{ background: color }}
-            />
+    <div className="overflow-hidden rounded-2xl border border-border bg-card transition-shadow hover:shadow-card-hover">
+      {/* Fila principal — estilo "Línea de Pedido" */}
+      <div className="flex items-center gap-3 py-3 pr-3" style={{ borderLeft: `3px solid ${color}` }}>
+        <span className="pl-3" />
+        <ProductThumb nombre={linea.nombre_sku} size={48} />
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-[14px] font-semibold leading-tight text-ink">
             {linea.nombre_sku}
           </p>
-          <p className="mt-0.5 text-[11px] text-muted">
-            ×{linea.quantity}
-            {linea.count > 1 && (
-              <span className="ml-1 opacity-70">({linea.count} entradas)</span>
-            )}
-            {!linea.historico && (
-              <span className="ml-1.5 opacity-60">· sin historial</span>
-            )}
+          <span
+            className="mt-1 inline-flex items-center gap-1.5 font-mono text-[10px] font-semibold tracking-wide"
+            style={{ color }}
+          >
+            <span className="h-1.5 w-1.5 rounded-full" style={{ background: color }} />
+            {RIESGO_LABEL[linea.nivel]}
+          </span>
+          {(linea.count > 1 || !linea.historico) && (
+            <p className="mt-0.5 text-[10px] text-muted">
+              {linea.count > 1 && <span>{linea.count} entradas</span>}
+              {linea.count > 1 && !linea.historico && " · "}
+              {!linea.historico && <span>sin historial</span>}
+            </p>
+          )}
+        </div>
+        <div className="shrink-0 text-right">
+          <p className="text-[15px] font-bold leading-none text-ink">{linea.quantity}</p>
+          <p className="mt-0.5 text-[10px] font-medium text-muted">Unidades</p>
+          <p className="mt-1 font-mono text-[10px] text-muted">
+            {(linea.score_linea * 100).toFixed(1)}% riesgo
           </p>
         </div>
-        <span
-          className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold"
-          style={{
-            background: enRiesgo ? `${color}22` : "var(--color-surface)",
-            color: enRiesgo ? color : "var(--color-muted)",
-            border: `1px solid ${enRiesgo ? color + "44" : "var(--color-border)"}`,
-          }}
-        >
-          {(linea.score_linea * 100).toFixed(1)}%
-        </span>
       </div>
 
       {/* Selector original ↔ sustituto: solo si hay sustituto probable */}
       {enRiesgo && sust && (
-        <div className="grid grid-cols-2 gap-1.5 border-t border-border p-1.5">
+        <div className="grid grid-cols-2 gap-1.5 border-t border-border bg-surface p-1.5">
           <button
             onClick={() => onElegir("original")}
-            className="rounded-lg px-2.5 py-2 text-left text-[11px] transition-colors"
+            className="rounded-xl px-2.5 py-2 text-left text-[11px] transition-colors"
             style={{
-              background: eleccion === "original" ? `${color}22` : "transparent",
+              background: eleccion === "original" ? `${color}1F` : "transparent",
               border: `1px solid ${eleccion === "original" ? color + "88" : "transparent"}`,
               color: "var(--color-ink)",
             }}
           >
-            <span className="block text-[9px] font-semibold uppercase tracking-wide text-muted">
+            <span className="block font-mono text-[9px] font-semibold uppercase tracking-wide text-muted">
               Mantener
             </span>
             <span className="block truncate font-medium">{linea.nombre_sku}</span>
           </button>
           <button
             onClick={() => onElegir("sustituto")}
-            className="rounded-lg px-2.5 py-2 text-left text-[11px] transition-colors"
+            className="rounded-xl px-2.5 py-2 text-left text-[11px] transition-colors"
             style={{
-              background: eleccion === "sustituto" ? `${color}22` : "transparent",
+              background: eleccion === "sustituto" ? `${color}1F` : "transparent",
               border: `1px solid ${eleccion === "sustituto" ? color + "88" : "transparent"}`,
               color: "var(--color-ink)",
             }}
           >
-            <span className="block text-[9px] font-semibold uppercase tracking-wide text-muted">
+            <span className="block font-mono text-[9px] font-semibold uppercase tracking-wide text-muted">
               Aceptar reemplazo
             </span>
-            <span className="block truncate font-medium">{sust.nombre}</span>
-            <span className="block text-[10px] text-muted">
-              ocurre {sust.frecuencia}× en históricos
+            <span className="flex items-center gap-1.5">
+              <ProductThumb nombre={sust.nombre} size={22} />
+              <span className="min-w-0 truncate font-medium">{sust.nombre}</span>
             </span>
+            <span className="block text-[10px] text-muted">ocurre {sust.frecuencia}× en históricos</span>
           </button>
         </div>
       )}
@@ -189,7 +194,7 @@ function LineasCards({ lineas }: { lineas: Linea[] }) {
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">
+        <p className="font-mono text-[11px] font-semibold uppercase tracking-wide text-muted">
           {grouped.length} producto{grouped.length === 1 ? "" : "s"}
         </p>
         {aceptados > 0 && (
@@ -198,18 +203,13 @@ function LineasCards({ lineas }: { lineas: Linea[] }) {
           </p>
         )}
       </div>
-      <div
-        className="space-y-1.5 overflow-y-auto pr-1"
-        style={{ maxHeight: "60vh" }}
-      >
+      <div className="space-y-2 overflow-y-auto pr-1" style={{ maxHeight: "60vh" }}>
         {grouped.map((l) => (
           <LineaCard
             key={l.nombre_sku}
             linea={l}
             eleccion={elecciones[l.nombre_sku] ?? "original"}
-            onElegir={(e) =>
-              setElecciones((prev) => ({ ...prev, [l.nombre_sku]: e }))
-            }
+            onElegir={(e) => setElecciones((prev) => ({ ...prev, [l.nombre_sku]: e }))}
           />
         ))}
       </div>
@@ -220,7 +220,7 @@ function LineasCards({ lineas }: { lineas: Linea[] }) {
 function Info({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-xl border border-border bg-surface px-3 py-2.5">
-      <div className="text-[10px] font-semibold uppercase tracking-widest text-muted">{label}</div>
+      <div className="font-mono text-[10px] font-semibold uppercase tracking-widest text-muted">{label}</div>
       <div className="mt-0.5 text-[13px] font-semibold text-ink">{value}</div>
     </div>
   );
@@ -292,11 +292,12 @@ function SearchPicker({
             filtered.map((s) => (
               <li
                 key={s}
-                className="cursor-pointer px-3 py-2 text-sm transition-colors hover:bg-surface"
+                className="flex cursor-pointer items-center gap-2 px-3 py-2 text-sm transition-colors hover:bg-surface"
                 style={{ color: "var(--color-ink)" }}
                 onMouseDown={() => { onChange(s); setOpen(false); }}
               >
-                {s}
+                <ProductThumb nombre={s} size={24} />
+                <span className="min-w-0 truncate">{s}</span>
               </li>
             ))
           )}
@@ -372,11 +373,12 @@ function SearchPickerEnter(props: {
             filtered.map((s) => (
               <li
                 key={s}
-                className="cursor-pointer px-3 py-2 text-sm transition-colors hover:bg-surface"
+                className="flex cursor-pointer items-center gap-2 px-3 py-2 text-sm transition-colors hover:bg-surface"
                 style={{ color: "var(--color-ink)" }}
                 onMouseDown={() => { props.onChange(s); setOpen(false); }}
               >
-                {s}
+                <ProductThumb nombre={s} size={24} />
+                <span className="min-w-0 truncate">{s}</span>
               </li>
             ))
           )}
@@ -386,9 +388,13 @@ function SearchPickerEnter(props: {
   );
 }
 
+type Tab = "rastreador" | "simulador";
+
 export default function PedidoPage() {
   const eda = api.eda.useQuery();
   const cat = eda.data?.catalogos;
+
+  const [tab, setTab] = useState<Tab>("rastreador");
 
   // ── Search existing order ──
   const [idInput, setIdInput] = useState("");
@@ -424,22 +430,39 @@ export default function PedidoPage() {
   };
 
   return (
-    <div>
+    <div className="mx-auto max-w-3xl">
       {/* Page header */}
       <div className="mb-5">
-        <h1 className="text-xl font-extrabold tracking-tight text-ink">Revisar y Anticipar Pedidos</h1>
-        <p className="mt-0.5 text-xs text-muted">
-          Busca un pedido que ya realizaste o arma tu lista para ver si todos los productos te llegarán completos.
+        <h1 className="text-2xl font-extrabold tracking-tight text-ink">Mis Pedidos</h1>
+        <p className="mt-1 text-[13px] text-muted">
+          Revisa un pedido que ya realizaste o arma tu lista para anticipar si te llegará completo.
         </p>
       </div>
 
-      {/* Desktop: side-by-side · Mobile: stacked */}
-      <div className="md:grid md:grid-cols-2 md:gap-6 md:items-start">
+      {/* Segmented tabs: Rastreador / Simulador */}
+      <div className="mb-5 inline-flex rounded-2xl border border-border bg-card p-1">
+        {(["rastreador", "simulador"] as Tab[]).map((t) => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            className="relative rounded-xl px-5 py-2 text-[13px] font-semibold capitalize transition-colors"
+            style={
+              tab === t
+                ? { background: "var(--rojo)", color: "#fff" }
+                : { color: "var(--color-muted)" }
+            }
+          >
+            {t === "rastreador" ? "Rastreador" : "Simulador"}
+          </button>
+        ))}
+      </div>
 
-        {/* ── Search existing order ── */}
-        <section className="card mb-4 md:mb-0">
-          <SectionHeader title="Rastrear pedido existente" />
-
+      {/* ── Rastreador ── */}
+      {tab === "rastreador" && (
+        <section className="card">
+          <label className="mb-1.5 block font-mono text-[11px] font-semibold uppercase tracking-wide text-muted">
+            ID de Pedido
+          </label>
           <div className="flex gap-2">
             <input
               className="input"
@@ -462,7 +485,7 @@ export default function PedidoPage() {
           )}
 
           {pedido.data && (
-            <div className="mt-4 space-y-3">
+            <div className="mt-4 space-y-4">
               <RiskSummary lineas={pedido.data.lineas as Linea[]} />
 
               <div className="grid grid-cols-3 gap-2">
@@ -491,16 +514,21 @@ export default function PedidoPage() {
                 </div>
               )}
 
-              <LineasCards lineas={pedido.data.lineas as Linea[]} />
+              <div>
+                <SectionHeader title="Líneas de Pedido" />
+                <LineasCards lineas={pedido.data.lineas as Linea[]} />
+              </div>
             </div>
           )}
         </section>
+      )}
 
-        {/* ── Simulator ── */}
+      {/* ── Simulador ── */}
+      {tab === "simulador" && (
         <section className="card">
           <SectionHeader title="Armar nuevo pedido" />
 
-          <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-muted">
+          <label className="mb-1 block font-mono text-[11px] font-semibold uppercase tracking-wide text-muted">
             Selecciona tu bodega
           </label>
           <SearchPicker
@@ -519,7 +547,7 @@ export default function PedidoPage() {
             </p>
           )}
 
-          <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-muted">
+          <label className="mb-1 block font-mono text-[11px] font-semibold uppercase tracking-wide text-muted">
             Añadir productos
           </label>
           <div className="flex gap-2">
@@ -553,7 +581,7 @@ export default function PedidoPage() {
 
           {/* Lista de productos agregados (con estado vacío visible) */}
           <div className="mt-3">
-            <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted">
+            <p className="mb-1.5 font-mono text-[10px] font-semibold uppercase tracking-wide text-muted">
               Productos en este pedido ({lineas.length})
             </p>
             {lineas.length === 0 ? (
@@ -568,9 +596,10 @@ export default function PedidoPage() {
                 {lineas.map((l, i) => (
                   <div
                     key={i}
-                    className="flex items-center justify-between gap-2 rounded-xl border border-border bg-surface px-3 py-2 text-sm"
+                    className="flex items-center gap-2 rounded-xl border border-border bg-surface px-2.5 py-2 text-sm"
                   >
-                    <span className="min-w-0 break-words text-ink">
+                    <ProductThumb nombre={l.nombre_sku} size={28} />
+                    <span className="min-w-0 flex-1 break-words text-ink">
                       {l.nombre_sku}{" "}
                       <span className="text-muted">×{l.quantity}</span>
                     </span>
@@ -614,7 +643,10 @@ export default function PedidoPage() {
                 Bodega: <span className="font-semibold text-ink">{simular.data.cedis}</span>
                 {" · "}tasa de cambios histórica del CEDIS: {(simular.data.tasa_cedis * 100).toFixed(1)}%
               </p>
-              <LineasCards lineas={simular.data.lineas as Linea[]} />
+              <div>
+                <SectionHeader title="Líneas de Pedido" />
+                <LineasCards lineas={simular.data.lineas as Linea[]} />
+              </div>
 
               {/* Registrar el pedido */}
               {!registrar.data && (
@@ -656,8 +688,7 @@ export default function PedidoPage() {
             </div>
           )}
         </section>
-
-      </div>
+      )}
     </div>
   );
 }
