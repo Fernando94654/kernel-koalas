@@ -17,11 +17,14 @@ export const appRouter = createTRPCRouter({
 
   sustitutos: publicProcedure
     .input(z.object({ sku: z.string() }))
-    .query(({ input }) => ({ nombre_sku: input.sku.trim(), sustitutos_probables: getSustitutos(input.sku, 3) })),
+    .query(async ({ input }) => ({
+      nombre_sku: input.sku.trim(),
+      sustitutos_probables: await getSustitutos(input.sku, 3),
+    })),
 
   semaforo: publicProcedure
     .input(z.object({ pais: z.string().optional(), businessUnit: z.string().optional() }).optional())
-    .query(({ input }) => ({ cedis: getSemaforo(input?.pais, input?.businessUnit) })),
+    .query(async ({ input }) => ({ cedis: await getSemaforo(input?.pais, input?.businessUnit) })),
 
   cedisDetalle: publicProcedure
     .input(z.object({ cedis: z.string() }))

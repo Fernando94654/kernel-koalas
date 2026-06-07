@@ -1,5 +1,5 @@
-// Chatbot analítico (puerto del chatbot.py): Groq primario -> Gemini fallback, RAG liviano.
-// Stateless. Sin API keys -> mensaje amistoso (nunca lanza). Server-only.
+// Analytical chatbot: Groq primary -> Gemini fallback, lightweight RAG.
+// Stateless. No API keys -> friendly message (never throws). Server-only.
 import "server-only";
 
 import { getEda, getPedidoScore } from "~/server/data";
@@ -11,9 +11,9 @@ const GEMINI_MODEL = "gemini-2.0-flash";
 
 export type ChatMsg = { role: "system" | "user" | "assistant"; content: string };
 
-function buildContext(query: string) {
+async function buildContext(query: string) {
   const q = query.toLowerCase();
-  const eda = getEda();
+  const eda = await getEda();
   const ctx: Record<string, unknown> = { metricas_globales: eda.metricas_globales };
 
   if (/cedis|centro|distribuc|riesgo|problema|zona|rojo/.test(q))
@@ -27,7 +27,7 @@ function buildContext(query: string) {
 
   const m = query.replace(/[.,]/g, "").match(/\d{10,}/);
   if (m) {
-    const ps = getPedidoScore(m[0]);
+    const ps = await getPedidoScore(m[0]!);
     if (ps) ctx.pedido_consultado = { id_pedido: m[0], ...ps };
   }
   return ctx;
@@ -81,7 +81,7 @@ async function callLLM(messages: ChatMsg[]): Promise<{ text: string; provider: s
       const data = (await resp.json()) as { choices?: { message?: { content?: string } }[] };
       const text = data.choices?.[0]?.message?.content;
       if (text) return { text, provider: p.name };
-      lastError = `${p.name}: respuesta vacía`;
+      lastError = `${p.name}: empty response`;
     } catch (e) {
       lastError = `${p.name}: ${e instanceof Error ? e.message : String(e)}`;
     }
@@ -90,7 +90,7 @@ async function callLLM(messages: ChatMsg[]): Promise<{ text: string; provider: s
 }
 
 export async function chat(userMessage: string, history: ChatMsg[]) {
-  const ctx = buildContext(userMessage);
+  const ctx = await buildContext(userMessage);
   const messages: ChatMsg[] = [
     { role: "system", content: systemPrompt(ctx) },
     ...history.slice(-6),
