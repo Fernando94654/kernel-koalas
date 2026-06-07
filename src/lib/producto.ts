@@ -52,6 +52,11 @@ export function visualBebida(nombre: string): Visual {
 // Para agregar una marca nueva: pon el archivo en esa carpeta y descomenta su línea.
 const ARCHIVO: Record<string, string> = {
   "coca-cola":     "coca-cola.jpg",
+  // Variantes de Coca-Cola (específicas)
+  "coca-cola-light-sin-cafeina": "coca-cola-light-sin-cafeina.jpg",
+  "coca-cola-sin-azucar":        "coca-cola-sin-azucar.webp",
+  "coca-cola-pet":               "coca-cola-pet.webp",
+  "coca-cola-vidrio":            "coca-cola-vidrio.webp",
   "pepsi":         "pepsi.jpg",
   "sprite":        "sprite.jpg",
   "fanta":         "fanta.jpg",
@@ -94,9 +99,13 @@ const IMG_REGLAS: [RegExp, string][] = [
   [/stayfree|toallas?\s?femenin/i, "stayfree"],
   [/sarita/i, "sarita"],
   [/bizcotela/i, "bizcotela"],
-  [/caffelato/i, "caffelato"],
-  // Refrescos / colas
-  [/coca|coca\s?-?cola/i, "coca-cola"],
+  [/caffe\s?lato|caffelato/i, "caffelato"],
+  // Refrescos / colas — variantes de Coca-Cola (las específicas van primero)
+  [/coca.*light.*sin\s?caf/i, "coca-cola-light-sin-cafeina"],
+  [/coca.*(sin\s?az[uú]car|zero)/i, "coca-cola-sin-azucar"],
+  [/coca.*vidrio/i, "coca-cola-vidrio"],
+  [/coca.*(pet|pieza)/i, "coca-cola-pet"],
+  [/coca/i, "coca-cola"],
   [/pepsi/i, "pepsi"],
   [/sprite/i, "sprite"],
   [/fanta/i, "fanta"],
