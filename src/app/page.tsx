@@ -48,13 +48,13 @@ function RiskSummary({ lineas }: { lineas: Linea[] }) {
     bannerNivel === "Verde"
       ? `Tu pedido sale prácticamente completo`
       : bannerNivel === "Amarillo"
-        ? `${pct.toFixed(1)}% de tu pedido podría venir cambiado`
-        : `Alto riesgo: ${pct.toFixed(1)}% de tu pedido podría venir sustituido`;
+        ? ` Hay ${pct.toFixed(1)}% de probabilidad de que tu pedido venga con cambios`
+        : ` Alto riesgo: ${pct.toFixed(1)}% de probabilidad de que tu pedido venga sustituido`;
 
   const detail =
     unidadesEnRiesgo === 0
-      ? `${totalUnidades} unidades · sin sustituciones probables · ${pct.toFixed(1)}% de riesgo`
-      : `≈ ${unidadesEnRiesgo} de ${totalUnidades} unidades en riesgo · ${lineasMarcadas} producto${lineasMarcadas === 1 ? "" : "s"} marcado${lineasMarcadas === 1 ? "" : "s"}`;
+      ? `${totalUnidades} unidades · sin sustituciones probables`
+      : `${lineasMarcadas} producto${lineasMarcadas === 1 ? "" : "s"} en riesgo · revisa los detalles abajo`;
 
   return (
     <div
@@ -411,14 +411,24 @@ export default function PedidoPage() {
   }, []);
 
   // ── Simulator ──
-  const [cedis,  setCedis]  = useState("");
+  const PAISES = ["México", "Ecuador", "Perú", "Argentina"] as const;
+  const COUNTRY_DEFAULT_CEDIS: Record<string, string> = {
+    "México": "3501", "Ecuador": "55", "Perú": "IA", "Argentina": "11",
+  };
+
+  const [pais,   setPais]   = useState<string>("");
   const [sku,    setSku]    = useState("");
   const [qty,    setQty]    = useState(1);
   const [lineas, setLineas] = useState<{ nombre_sku: string; quantity: number }[]>([]);
   const simular = api.simular.useMutation();
   const registrar = api.registrarPedido.useMutation();
 
-  const cedisValid = cat?.cedis.includes(cedis) ?? false;
+  // Auto-derive CEDIS: from searched order (most accurate) or country default.
+  const cedisAuto =
+    pedido.data?.cabecera.cedis ??
+    COUNTRY_DEFAULT_CEDIS[pais] ??
+    "";
+
   const skuValid = cat?.skus.includes(sku) ?? false;
   const canAdd = sku.trim().length > 0;
 
@@ -528,23 +538,42 @@ export default function PedidoPage() {
         <section className="card">
           <SectionHeader title="Armar nuevo pedido" />
 
-          <label className="mb-1 block font-mono text-[11px] font-semibold uppercase tracking-wide text-muted">
-            Selecciona tu bodega
-          </label>
-          <SearchPicker
-            value={cedis}
-            onChange={setCedis}
-            items={cat?.cedis ?? []}
-            placeholder="Escribe el código de tu bodega…"
-          />
-          {cedis && !cedisValid ? (
-            <p className="mb-3 mt-1 text-[10px] text-rojo">
-              Esa bodega no existe — selecciona una de la lista
-            </p>
+          {/* Bodega: auto-derived, never shown as a raw code to the user */}
+          {pedido.data ? (
+            <div
+              className="mb-3 flex items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2.5 text-[12px] text-muted"
+            >
+              <span>🏭</span>
+              <span>
+                Usando la zona de distribución de tu pedido anterior
+                <span className="ml-1 font-semibold text-ink">({pedido.data.cabecera.pais ?? "—"})</span>
+              </span>
+            </div>
           ) : (
-            <p className="mb-3 mt-1 text-[10px] text-muted">
-              {cedisValid ? `✓ Bodega ${cedis} confirmada` : "Haz click en el campo para ver opciones"}
-            </p>
+            <div className="mb-3">
+              <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-muted">
+                ¿Desde qué país pides?
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {PAISES.map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => setPais(p)}
+                    className="rounded-xl border px-3 py-1.5 text-sm font-medium transition-colors"
+                    style={
+                      pais === p
+                        ? { background: "var(--rojo)", color: "#fff", borderColor: "var(--rojo)" }
+                        : { borderColor: "var(--color-border)", color: "var(--color-ink)" }
+                    }
+                  >
+                    {p}
+                  </button>
+                ))}
+              </div>
+              {!pais && (
+                <p className="mt-1.5 text-[10px] text-muted">Selecciona tu país para continuar</p>
+              )}
+            </div>
           )}
 
           <label className="mb-1 block font-mono text-[11px] font-semibold uppercase tracking-wide text-muted">
@@ -575,7 +604,7 @@ export default function PedidoPage() {
           </div>
           {sku && !skuValid && (
             <p className="mt-1 text-[10px]" style={{ color: "var(--color-muted)" }}>
-              ⚠ Ese nombre no existe en el catálogo — se calculará con la tasa promedio del CEDIS.
+              ⚠ Ese nombre no existe en el catálogo — se usará el promedio histórico de tu zona.
             </p>
           )}
 
@@ -618,10 +647,10 @@ export default function PedidoPage() {
           <div className="mt-4 flex gap-2">
             <button
               className="btn flex-1"
-              disabled={!cedisValid || !lineas.length || simular.isPending}
-              onClick={() => simular.mutate({ cedis, lineas })}
+              disabled={!cedisAuto || !lineas.length || simular.isPending}
+              onClick={() => simular.mutate({ cedis: cedisAuto, lineas })}
               title={
-                !cedisValid ? "Selecciona una bodega válida" :
+                !cedisAuto ? "Selecciona tu país primero" :
                 !lineas.length ? "Agrega al menos un producto" :
                 "Verificar disponibilidad"
               }
@@ -630,7 +659,7 @@ export default function PedidoPage() {
             </button>
             <button
               className="btn-ghost"
-              onClick={() => { setLineas([]); simular.reset(); registrar.reset(); }}
+              onClick={() => { setLineas([]); setPais(""); simular.reset(); registrar.reset(); }}
             >
               Limpiar
             </button>
@@ -640,8 +669,7 @@ export default function PedidoPage() {
             <div className="mt-4 space-y-3">
               <RiskSummary lineas={simular.data.lineas as Linea[]} />
               <p className="text-[11px] text-muted">
-                Bodega: <span className="font-semibold text-ink">{simular.data.cedis}</span>
-                {" · "}tasa de cambios histórica del CEDIS: {(simular.data.tasa_cedis * 100).toFixed(1)}%
+                Historial de cambios en tu zona: <span className="font-semibold text-ink">{(simular.data.tasa_cedis * 100).toFixed(1)}%</span>
               </p>
               <div>
                 <SectionHeader title="Líneas de Pedido" />
@@ -653,7 +681,7 @@ export default function PedidoPage() {
                 <button
                   className="btn w-full"
                   disabled={registrar.isPending}
-                  onClick={() => registrar.mutate({ cedis, lineas })}
+                  onClick={() => registrar.mutate({ cedis: cedisAuto, lineas })}
                 >
                   {registrar.isPending ? "Registrando…" : "Registrar este pedido"}
                 </button>
