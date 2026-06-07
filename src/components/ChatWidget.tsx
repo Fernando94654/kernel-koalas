@@ -2,7 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import Link from "next/link";
+
 import { api } from "~/trpc/react";
+import { RichText } from "~/components/RichText";
 import type { ChatMsg } from "~/server/chatbot";
 
 const QUICK = [
@@ -90,6 +93,13 @@ export function ChatWidget() {
                 </div>
               </div>
               <div className="flex items-center gap-3">
+                <Link
+                  href="/asistente"
+                  onClick={() => setOpen(false)}
+                  className="rounded-lg border border-border px-2 py-1 text-[11px] font-medium text-muted transition-colors hover:text-rojo"
+                >
+                  Pantalla completa ↗
+                </Link>
                 <button onClick={clear} className="text-xs font-medium text-muted hover:text-ink">
                   Clear
                 </button>
@@ -109,14 +119,14 @@ export function ChatWidget() {
               {visible.map((m, i) => (
                 <div
                   key={i}
-                  className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-3.5 py-2 text-sm ${
+                  className={`max-w-[85%] rounded-2xl px-3.5 py-2 text-sm ${
                     m.role === "user"
-                      ? "ml-auto rounded-br-md bg-rojo text-white"
+                      ? "ml-auto whitespace-pre-wrap rounded-br-md bg-rojo text-white"
                       : "mr-auto rounded-bl-md text-ink"
                   }`}
                   style={m.role !== "user" ? { background: "var(--color-surface)" } : undefined}
                 >
-                  {m.content}
+                  {m.role === "user" ? m.content : <RichText text={m.content} />}
                 </div>
               ))}
               {chat.isPending && (

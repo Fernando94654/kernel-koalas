@@ -34,7 +34,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* ── Page content ── */}
       <main className="app-main">{children}</main>
 
-      <ChatWidget />
+      {/* La burbuja flotante se oculta en la página dedicada del asistente */}
+      {path !== "/asistente" && <ChatWidget />}
 
       {/* ── Bottom nav: mobile only ── */}
       <div className="md:hidden">

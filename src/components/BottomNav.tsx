@@ -12,7 +12,7 @@ export function BottomNav() {
 
   return (
     <nav className="bottom-nav">
-      <div className={`grid grid-cols-${NAV_TABS.length + 1}`}>
+      <div className="flex items-stretch [&>*]:flex-1">
         {NAV_TABS.map((t) => {
           const active = t.href === "/" ? path === "/" : path.startsWith(t.href);
           return (

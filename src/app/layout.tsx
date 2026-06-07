@@ -1,14 +1,22 @@
 import "~/app/globals.css";
 
 import { type Metadata, type Viewport } from "next";
-import { Hanken_Grotesk, JetBrains_Mono } from "next/font/google";
+import { Hanken_Grotesk, JetBrains_Mono, Sora } from "next/font/google";
 
 import { TRPCReactProvider } from "~/trpc/react";
 import { SessionProviderWrapper } from "~/components/SessionProviderWrapper";
 import { AppShell } from "~/components/AppShell";
 import { ServiceWorkerRegister } from "~/components/ServiceWorkerRegister";
 
-// Headline + body — geometric, friendly, on-brand for Arca Continental.
+// Display — títulos imponentes y números grandes.
+const sora = Sora({
+  subsets: ["latin"],
+  variable: "--font-display",
+  display: "swap",
+  weight: ["500", "600", "700", "800"],
+});
+
+// Body — geométrica, legible, amigable.
 const hanken = Hanken_Grotesk({
   subsets: ["latin"],
   variable: "--font-sans",
@@ -40,7 +48,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es" className={`${hanken.variable} ${jetbrains.variable}`}>
+    <html lang="es" className={`${sora.variable} ${hanken.variable} ${jetbrains.variable}`}>
       <body>
         <SessionProviderWrapper>
         <TRPCReactProvider>

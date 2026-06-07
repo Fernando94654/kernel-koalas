@@ -53,8 +53,14 @@ body {
   overscroll-behavior-y: none;
 }
 
-/* Headings inherit the geometric sans with tight tracking for an editorial feel */
-h1, h2, h3 { letter-spacing: -0.015em; }
+/* Headings: display font for an imposing, editorial feel */
+h1, h2 {
+  font-family: var(--font-display), system-ui, sans-serif;
+  letter-spacing: -0.025em;
+}
+h3 { letter-spacing: -0.015em; }
+
+.font-display { font-family: var(--font-display), system-ui, sans-serif; }
 
 /* Monospace accent for labels / codes / numeric tags */
 .font-mono,
@@ -224,6 +230,12 @@ h1, h2, h3 { letter-spacing: -0.015em; }
 /* ── Scrollbar suppression ─────────────────────────────────────────── */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ── Chat typing indicator ─────────────────────────────────────────── */
+@keyframes chatdot {
+  0%, 60%, 100% { opacity: .25; transform: translateY(0); }
+  30%           { opacity: 1;   transform: translateY(-3px); }
+}
 
 /* ── Loading spinner ───────────────────────────────────────────────── */
 @keyframes spin { to { transform: rotate(360deg); } }
