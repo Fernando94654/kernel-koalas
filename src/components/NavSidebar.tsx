@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
 
 import { NAV_TABS } from "~/lib/nav";
 
 export function NavSidebar() {
   const path = usePathname();
+  const { data: session } = useSession();
 
   return (
     <nav className="app-sidebar">
@@ -58,10 +60,44 @@ export function NavSidebar() {
         })}
       </div>
 
-      {/* Footer */}
-      <div className="border-t px-6 py-4" style={{ borderColor: "var(--color-border)" }}>
-        <p className="text-[11px] text-muted">Hackathon · 2025</p>
-        <p className="text-[11px] text-muted opacity-70">Kernel Koalas</p>
+      {/* Footer — user profile */}
+      <div className="border-t px-4 py-4" style={{ borderColor: "var(--color-border)" }}>
+        {session?.user ? (
+          <div className="flex items-center gap-2.5">
+            {session.user.image ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={session.user.image}
+                className="h-8 w-8 shrink-0 rounded-full"
+                alt="avatar"
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-rojo text-xs font-bold text-white">
+                {session.user.name?.[0]?.toUpperCase() ?? "?"}
+              </div>
+            )}
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[12px] font-semibold text-ink">
+                {session.user.name ?? session.user.email}
+              </p>
+              <button
+                onClick={() => signOut({ callbackUrl: "/login" })}
+                className="text-[10px] text-muted transition-colors hover:text-rojo"
+              >
+                Cerrar sesión
+              </button>
+            </div>
+          </div>
+        ) : (
+          <Link
+            href="/login"
+            className="flex w-full items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+            style={{ background: "var(--rojo)" }}
+          >
+            Iniciar sesión
+          </Link>
+        )}
       </div>
 
     </nav>

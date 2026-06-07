@@ -4,6 +4,7 @@ import { type Metadata, type Viewport } from "next";
 import { Inter } from "next/font/google";
 
 import { TRPCReactProvider } from "~/trpc/react";
+import { SessionProviderWrapper } from "~/components/SessionProviderWrapper";
 import { BottomNav } from "~/components/BottomNav";
 import { NavSidebar } from "~/components/NavSidebar";
 import { ChatWidget } from "~/components/ChatWidget";
@@ -35,6 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="es" className={inter.variable}>
       <body>
+        <SessionProviderWrapper>
         <TRPCReactProvider>
           <div className="app-shell">
 
@@ -69,6 +71,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </div>
           <ServiceWorkerRegister />
         </TRPCReactProvider>
+        </SessionProviderWrapper>
       </body>
     </html>
   );
