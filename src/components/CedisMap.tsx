@@ -21,21 +21,43 @@ interface SemaforoRow {
   cedis: string;
   nivel: Nivel;
   por_pais: Record<string, number>;
+  tasa?: number;
 }
 
 interface CountryAgg {
   nivel: Nivel;
   counts: Record<Nivel, number>;
+  tasa: number;
 }
 
 interface CedisMapProps {
   rows: SemaforoRow[];
   selectedPais: string;
   onSelect: (pais: string) => void;
+  mode?: "pins" | "heat";
 }
 
-export function CedisMap({ rows, selectedPais, onSelect }: CedisMapProps) {
-  const [tooltip, setTooltip] = useState<{ country: string; counts: Record<Nivel, number> } | null>(null);
+// Interpolate between green (0) → yellow (~10%) → red (>=20%) for continuous heat coloring.
+function heatColor(tasa: number): string {
+  const t = Math.min(1, Math.max(0, tasa / 0.2));
+  if (t < 0.5) {
+    // green → yellow
+    const k = t / 0.5;
+    const r = Math.round(34 + (245 - 34) * k);
+    const g = Math.round(197 + (166 - 197) * k);
+    const b = Math.round(94 + (35 - 94) * k);
+    return `rgb(${r},${g},${b})`;
+  }
+  // yellow → red
+  const k = (t - 0.5) / 0.5;
+  const r = Math.round(245 + (220 - 245) * k);
+  const g = Math.round(166 + (38 - 166) * k);
+  const b = Math.round(35 + (38 - 35) * k);
+  return `rgb(${r},${g},${b})`;
+}
+
+export function CedisMap({ rows, selectedPais, onSelect, mode = "pins" }: CedisMapProps) {
+  const [tooltip, setTooltip] = useState<{ country: string; counts: Record<Nivel, number>; tasa: number } | null>(null);
 
   // Aggregate: determine primary country per CEDIS, then worst nivel per country
   const countryData: Record<string, CountryAgg> = {};
@@ -45,13 +67,14 @@ export function CedisMap({ rows, selectedPais, onSelect }: CedisMapProps) {
     const primaryPais = entries.sort(([, a], [, b]) => b - a)[0]![0];
 
     if (!countryData[primaryPais]) {
-      countryData[primaryPais] = { nivel: "Verde", counts: { Rojo: 0, Amarillo: 0, Verde: 0 } };
+      countryData[primaryPais] = { nivel: "Verde", counts: { Rojo: 0, Amarillo: 0, Verde: 0 }, tasa: 0 };
     }
     const cd = countryData[primaryPais]!;
     cd.counts[row.nivel]++;
     if (NIVEL_ORDER[row.nivel] > NIVEL_ORDER[cd.nivel]) {
       cd.nivel = row.nivel;
     }
+    if (row.tasa !== undefined && row.tasa > cd.tasa) cd.tasa = row.tasa;
   }
 
   return (
@@ -74,7 +97,9 @@ export function CedisMap({ rows, selectedPais, onSelect }: CedisMapProps) {
               const isSelected = country === selectedPais;
 
               const baseFill = data
-                ? nivelColor[data.nivel]
+                ? mode === "heat"
+                  ? heatColor(data.tasa)
+                  : nivelColor[data.nivel]
                 : "var(--color-border)";
 
               return (
@@ -94,7 +119,7 @@ export function CedisMap({ rows, selectedPais, onSelect }: CedisMapProps) {
                     pressed: { outline: "none" },
                   }}
                   onMouseEnter={() => {
-                    if (country && data) setTooltip({ country, counts: data.counts });
+                    if (country && data) setTooltip({ country, counts: data.counts, tasa: data.tasa });
                   }}
                   onMouseLeave={() => setTooltip(null)}
                   onClick={() => {
@@ -118,28 +143,55 @@ export function CedisMap({ rows, selectedPais, onSelect }: CedisMapProps) {
           }}
         >
           <p className="font-semibold text-ink">{tooltip.country}</p>
-          <p className="text-muted">
-            🔴 {tooltip.counts.Rojo} · 🟡 {tooltip.counts.Amarillo} · 🟢 {tooltip.counts.Verde}
-          </p>
+          {mode === "heat" ? (
+            <p className="text-muted">
+              Tasa de cambios: <span className="font-semibold text-ink">{(tooltip.tasa * 100).toFixed(1)}%</span>
+            </p>
+          ) : (
+            <p className="text-muted">
+              🔴 {tooltip.counts.Rojo} · 🟡 {tooltip.counts.Amarillo} · 🟢 {tooltip.counts.Verde}
+            </p>
+          )}
         </div>
       )}
 
       {/* Legend */}
       <div className="absolute bottom-3 left-3 flex flex-wrap gap-1.5">
-        {(["Rojo", "Amarillo", "Verde"] as Nivel[]).map((n) => (
+        {mode === "heat" ? (
           <div
-            key={n}
-            className="flex items-center gap-1 rounded-lg border px-2 py-1 text-[10px] text-muted"
+            className="flex items-center gap-2 rounded-lg border px-2 py-1 text-[10px] text-muted"
             style={{
               background: "var(--color-card)",
               borderColor: "var(--color-border)",
               backdropFilter: "blur(8px)",
             }}
           >
-            <span className="h-2 w-2 rounded-full" style={{ background: nivelColor[n] }} />
-            {n === "Rojo" ? "Alto riesgo" : n === "Amarillo" ? "Riesgo medio" : "Sin riesgo"}
+            <span className="text-[10px]">0%</span>
+            <span
+              className="inline-block h-2 w-20 rounded-full"
+              style={{
+                background:
+                  "linear-gradient(to right, rgb(34,197,94), rgb(245,166,35), rgb(220,38,38))",
+              }}
+            />
+            <span className="text-[10px]">20%+</span>
           </div>
-        ))}
+        ) : (
+          (["Rojo", "Amarillo", "Verde"] as Nivel[]).map((n) => (
+            <div
+              key={n}
+              className="flex items-center gap-1 rounded-lg border px-2 py-1 text-[10px] text-muted"
+              style={{
+                background: "var(--color-card)",
+                borderColor: "var(--color-border)",
+                backdropFilter: "blur(8px)",
+              }}
+            >
+              <span className="h-2 w-2 rounded-full" style={{ background: nivelColor[n] }} />
+              {n === "Rojo" ? "Alto riesgo" : n === "Amarillo" ? "Riesgo medio" : "Sin riesgo"}
+            </div>
+          ))
+        )}
       </div>
 
       {/* Selected country badge */}

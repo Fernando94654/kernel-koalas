@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { api } from "~/trpc/react";
 import { nivelColor, nivelEmoji } from "~/lib/ui";
 import { CedisMap } from "~/components/CedisMap";
@@ -14,6 +15,7 @@ function findSustituto(
 
 export default function AlertasPage() {
   const eda = api.eda.useQuery();
+  const [mapMode, setMapMode] = useState<"pins" | "heat">("pins");
 
   // Derive map rows from per-country EDA substitution rates
   const mapRows = eda.data
@@ -21,6 +23,7 @@ export default function AlertasPage() {
         cedis: `_pais_${pais}`,
         nivel: (data.tasa >= 0.14 ? "Rojo" : data.tasa >= 0.08 ? "Amarillo" : "Verde") as Nivel,
         por_pais: { [pais]: data.n_pedidos },
+        tasa: data.tasa,
       }))
     : [];
 
@@ -39,7 +42,30 @@ export default function AlertasPage() {
 
       {/* Interactive map — country-level risk */}
       {mapRows.length > 0 && (
-        <CedisMap rows={mapRows} selectedPais="" onSelect={() => {}} />
+        <>
+          <div className="mb-2 flex justify-end">
+            <div
+              className="inline-flex rounded-lg border p-0.5 text-[11px]"
+              style={{ borderColor: "var(--color-border)", background: "var(--color-card)" }}
+            >
+              <button
+                className={`rounded-md px-2.5 py-1 font-medium transition-colors ${mapMode === "pins" ? "text-ink" : "text-muted"}`}
+                style={mapMode === "pins" ? { background: "var(--color-surface)" } : undefined}
+                onClick={() => setMapMode("pins")}
+              >
+                Categorías
+              </button>
+              <button
+                className={`rounded-md px-2.5 py-1 font-medium transition-colors ${mapMode === "heat" ? "text-ink" : "text-muted"}`}
+                style={mapMode === "heat" ? { background: "var(--color-surface)" } : undefined}
+                onClick={() => setMapMode("heat")}
+              >
+                Calor
+              </button>
+            </div>
+          </div>
+          <CedisMap rows={mapRows} selectedPais="" onSelect={() => {}} mode={mapMode} />
+        </>
       )}
 
       {eda.isLoading && (

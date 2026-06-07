@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { api } from "~/trpc/react";
-import { fmt, nivelEmoji, nivelColor } from "~/lib/ui";
+import { fmt, nivelColor } from "~/lib/ui";
 import type { Nivel } from "~/lib/model";
 
 type Linea = {
@@ -15,6 +15,8 @@ type Linea = {
   sustitutos_probables: { nombre: string; frecuencia: number }[];
 };
 
+type GroupedLinea = Linea & { count: number };
+
 function SectionHeader({ title }: { title: string }) {
   return (
     <div className="mb-3 flex items-center gap-2">
@@ -24,82 +26,193 @@ function SectionHeader({ title }: { title: string }) {
   );
 }
 
-function ScoreHeader({ score, nivel }: { score: number; nivel: Nivel }) {
-  return (
-    <div className="flex items-center justify-between rounded-xl border border-border bg-surface px-4 py-3">
-      <div>
-        <div className="text-[10px] font-semibold uppercase tracking-widest text-muted">
-          Riesgo del pedido
-        </div>
-        <div className={`text-3xl font-extrabold tracking-tight dot-${nivel}`}>
-          {score.toFixed(4)}
-        </div>
-      </div>
-      <span className={`badge badge-${nivel} px-3 py-1 text-sm`}>{nivel}</span>
-    </div>
-  );
-}
+function RiskSummary({ lineas }: { lineas: Linea[] }) {
+  const totalUnidades = lineas.reduce((s, l) => s + l.quantity, 0);
+  const unidadesEnRiesgoExact = lineas.reduce((s, l) => s + l.quantity * l.score_linea, 0);
+  const unidadesEnRiesgo = Math.round(unidadesEnRiesgoExact);
+  const lineasMarcadas = lineas.filter((l) => l.nivel !== "Verde").length;
+  const pct = totalUnidades > 0 ? (unidadesEnRiesgoExact / totalUnidades) * 100 : 0;
 
-function EarlyWarningBanner({ lineas }: { lineas: Linea[] }) {
-  const atRisk = lineas.filter((l) => l.nivel !== "Verde");
-  if (!atRisk.length) return null;
+  // Nivel del banner: derivado del % ponderado por unidades — consistente con lo que se muestra.
+  const bannerNivel: Nivel = pct >= 8 ? "Rojo" : pct >= 3 ? "Amarillo" : "Verde";
+  const color = nivelColor[bannerNivel];
+
+  const headline =
+    bannerNivel === "Verde"
+      ? `✅ Tu pedido sale prácticamente completo`
+      : bannerNivel === "Amarillo"
+        ? `⚠️ ${pct.toFixed(1)}% de tu pedido podría venir cambiado`
+        : `🚨 Alto riesgo: ${pct.toFixed(1)}% de tu pedido podría venir sustituido`;
+
+  const detail =
+    unidadesEnRiesgo === 0
+      ? `${totalUnidades} unidades · sin sustituciones probables · ${pct.toFixed(1)}% de riesgo`
+      : `≈ ${unidadesEnRiesgo} de ${totalUnidades} unidades en riesgo · ${lineasMarcadas} producto${lineasMarcadas === 1 ? "" : "s"} marcado${lineasMarcadas === 1 ? "" : "s"}`;
+
   return (
     <div
-      className="my-3 rounded-xl px-4 py-3"
+      className="rounded-2xl px-4 py-4"
       style={{
-        border: "1px solid rgba(245,166,35,0.35)",
-        background: "rgba(245,166,35,0.06)",
+        border: `1px solid ${color}55`,
+        background: `${color}12`,
       }}
     >
-      <p className="mb-2 text-sm font-semibold" style={{ color: nivelColor.Amarillo }}>
-        ⚠️ {atRisk.length} producto{atRisk.length > 1 ? "s" : ""} con probabilidad de cambio
+      <p className="text-[15px] font-bold leading-snug" style={{ color }}>
+        {headline}
       </p>
-      <div className="space-y-1">
-        {atRisk.map((l, i) => (
-          <div key={i} className="text-[12px] text-ink">
-            {nivelEmoji[l.nivel]} <strong>{l.nombre_sku}</strong>
-            {l.sustitutos_probables[0] && (
-              <span className="text-muted">
-                {" "}→ posible reemplazo:{" "}
-                <strong>{l.sustitutos_probables[0].nombre}</strong>{" "}
-                <span className="opacity-60">
-                  ({l.sustitutos_probables[0].frecuencia}×)
-                </span>
-              </span>
-            )}
-          </div>
-        ))}
-      </div>
+      <p className="mt-1 text-[12px] text-muted">{detail}</p>
     </div>
   );
 }
 
-function LineasList({ lineas }: { lineas: Linea[] }) {
+// Agrupa líneas duplicadas por SKU sumando cantidades.
+function groupLineas(lineas: Linea[]): GroupedLinea[] {
+  const map = new Map<string, GroupedLinea>();
+  for (const l of lineas) {
+    const ex = map.get(l.nombre_sku);
+    if (ex) {
+      ex.quantity += l.quantity;
+      ex.count += 1;
+    } else {
+      map.set(l.nombre_sku, { ...l, count: 1 });
+    }
+  }
+  // Ordenar: en riesgo primero, luego por cantidad desc
+  return [...map.values()].sort((a, b) => {
+    const ra = a.nivel === "Verde" ? 0 : a.nivel === "Amarillo" ? 1 : 2;
+    const rb = b.nivel === "Verde" ? 0 : b.nivel === "Amarillo" ? 1 : 2;
+    if (ra !== rb) return rb - ra;
+    return b.quantity - a.quantity;
+  });
+}
+
+type Eleccion = "original" | "sustituto";
+
+function LineaCard({
+  linea,
+  eleccion,
+  onElegir,
+}: {
+  linea: GroupedLinea;
+  eleccion: Eleccion;
+  onElegir: (e: Eleccion) => void;
+}) {
+  const enRiesgo = linea.nivel !== "Verde";
+  const color = nivelColor[linea.nivel];
+  const sust = linea.sustitutos_probables[0];
+
   return (
-    <div className="mt-3 overflow-hidden rounded-xl border border-border">
-      {lineas.map((l, i) => (
-        <div key={i} className="border-b border-border px-3 py-3 last:border-0">
-          <div className="flex items-start justify-between gap-2">
-            <span className="text-sm font-medium text-ink">
-              {nivelEmoji[l.nivel]} {l.nombre_sku}
-              {!l.historico && (
-                <span className="ml-1 text-[10px] text-muted">(sin historial)</span>
-              )}
-            </span>
-            <span className="shrink-0 text-right text-sm">
-              <span className="tabular-nums font-semibold">{l.score_linea.toFixed(4)}</span>
-              <span className="block text-[11px] text-muted">×{l.quantity}</span>
-            </span>
-          </div>
-          {l.sustitutos_probables.length > 0 && (
-            <div className="mt-1 text-[11px] text-muted">
-              Posible reemplazo:{" "}
-              <span className="font-medium">{l.sustitutos_probables[0]!.nombre}</span>{" "}
-              <span className="opacity-70">({l.sustitutos_probables[0]!.frecuencia}×)</span>
-            </div>
-          )}
+    <div
+      className="rounded-xl border bg-surface"
+      style={{
+        borderColor: enRiesgo ? `${color}55` : "var(--color-border)",
+      }}
+    >
+      {/* Encabezado de la línea */}
+      <div className="flex items-start justify-between gap-3 px-3 py-2.5">
+        <div className="min-w-0">
+          <p className="text-[13px] font-semibold leading-snug text-ink">
+            <span
+              className="mr-1.5 inline-block h-2 w-2 rounded-full align-middle"
+              style={{ background: color }}
+            />
+            {linea.nombre_sku}
+          </p>
+          <p className="mt-0.5 text-[11px] text-muted">
+            ×{linea.quantity}
+            {linea.count > 1 && (
+              <span className="ml-1 opacity-70">({linea.count} entradas)</span>
+            )}
+            {!linea.historico && (
+              <span className="ml-1.5 opacity-60">· sin historial</span>
+            )}
+          </p>
         </div>
-      ))}
+        <span
+          className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold"
+          style={{
+            background: enRiesgo ? `${color}22` : "var(--color-surface)",
+            color: enRiesgo ? color : "var(--color-muted)",
+            border: `1px solid ${enRiesgo ? color + "44" : "var(--color-border)"}`,
+          }}
+        >
+          {(linea.score_linea * 100).toFixed(1)}%
+        </span>
+      </div>
+
+      {/* Selector original ↔ sustituto: solo si hay sustituto probable */}
+      {enRiesgo && sust && (
+        <div className="grid grid-cols-2 gap-1.5 border-t border-border p-1.5">
+          <button
+            onClick={() => onElegir("original")}
+            className="rounded-lg px-2.5 py-2 text-left text-[11px] transition-colors"
+            style={{
+              background: eleccion === "original" ? `${color}22` : "transparent",
+              border: `1px solid ${eleccion === "original" ? color + "88" : "transparent"}`,
+              color: "var(--color-ink)",
+            }}
+          >
+            <span className="block text-[9px] font-semibold uppercase tracking-wide text-muted">
+              Mantener
+            </span>
+            <span className="block truncate font-medium">{linea.nombre_sku}</span>
+          </button>
+          <button
+            onClick={() => onElegir("sustituto")}
+            className="rounded-lg px-2.5 py-2 text-left text-[11px] transition-colors"
+            style={{
+              background: eleccion === "sustituto" ? `${color}22` : "transparent",
+              border: `1px solid ${eleccion === "sustituto" ? color + "88" : "transparent"}`,
+              color: "var(--color-ink)",
+            }}
+          >
+            <span className="block text-[9px] font-semibold uppercase tracking-wide text-muted">
+              Aceptar reemplazo
+            </span>
+            <span className="block truncate font-medium">{sust.nombre}</span>
+            <span className="block text-[10px] text-muted">
+              ocurre {sust.frecuencia}× en históricos
+            </span>
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function LineasCards({ lineas }: { lineas: Linea[] }) {
+  const grouped = useMemo(() => groupLineas(lineas), [lineas]);
+  const [elecciones, setElecciones] = useState<Record<string, Eleccion>>({});
+
+  const aceptados = Object.values(elecciones).filter((e) => e === "sustituto").length;
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">
+          {grouped.length} producto{grouped.length === 1 ? "" : "s"}
+        </p>
+        {aceptados > 0 && (
+          <p className="text-[11px] text-muted">
+            {aceptados} reemplazo{aceptados === 1 ? "" : "s"} aceptado{aceptados === 1 ? "" : "s"}
+          </p>
+        )}
+      </div>
+      <div
+        className="space-y-1.5 overflow-y-auto pr-1"
+        style={{ maxHeight: "60vh" }}
+      >
+        {grouped.map((l) => (
+          <LineaCard
+            key={l.nombre_sku}
+            linea={l}
+            eleccion={elecciones[l.nombre_sku] ?? "original"}
+            onElegir={(e) =>
+              setElecciones((prev) => ({ ...prev, [l.nombre_sku]: e }))
+            }
+          />
+        ))}
+      </div>
     </div>
   );
 }
@@ -108,7 +221,7 @@ function Info({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-xl border border-border bg-surface px-3 py-2.5">
       <div className="text-[10px] font-semibold uppercase tracking-widest text-muted">{label}</div>
-      <div className="mt-0.5 font-semibold text-ink">{value}</div>
+      <div className="mt-0.5 text-[13px] font-semibold text-ink">{value}</div>
     </div>
   );
 }
@@ -127,9 +240,12 @@ function SearchPicker({
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const filtered = items
-    .filter((s) => s.toLowerCase().includes(value.toLowerCase()))
-    .slice(0, 10);
+  // Si el texto está vacío, muestra los primeros 30; si no, filtra.
+  const filtered = (
+    value.trim() === ""
+      ? items.slice(0, 30)
+      : items.filter((s) => s.toLowerCase().includes(value.toLowerCase())).slice(0, 30)
+  );
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -141,6 +257,8 @@ function SearchPicker({
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
+  const exactMatch = items.includes(value);
+
   return (
     <div ref={containerRef} className="relative flex-1">
       <input
@@ -149,29 +267,39 @@ function SearchPicker({
         value={value}
         onChange={(e) => { onChange(e.target.value); setOpen(true); }}
         onFocus={() => setOpen(true)}
-        onKeyDown={(e) => { if (e.key === "Escape") setOpen(false); }}
+        onKeyDown={(e) => {
+          if (e.key === "Escape") setOpen(false);
+          if (e.key === "Enter" && filtered[0] && !exactMatch) {
+            onChange(filtered[0]);
+            setOpen(false);
+          }
+        }}
         autoComplete="off"
       />
-      {open && filtered.length > 0 && (
+      {open && (
         <ul
           className="absolute left-0 right-0 top-full z-50 mt-1 overflow-y-auto rounded-xl border py-1"
           style={{
             background: "var(--color-card)",
             borderColor: "var(--color-border)",
             boxShadow: "0 8px 24px rgba(0,0,0,.18)",
-            maxHeight: 220,
+            maxHeight: 240,
           }}
         >
-          {filtered.map((s) => (
-            <li
-              key={s}
-              className="cursor-pointer px-3 py-2 text-sm transition-colors hover:bg-surface"
-              style={{ color: "var(--color-ink)" }}
-              onMouseDown={() => { onChange(s); setOpen(false); }}
-            >
-              {s}
-            </li>
-          ))}
+          {filtered.length === 0 ? (
+            <li className="px-3 py-2 text-[12px] text-muted">Sin coincidencias</li>
+          ) : (
+            filtered.map((s) => (
+              <li
+                key={s}
+                className="cursor-pointer px-3 py-2 text-sm transition-colors hover:bg-surface"
+                style={{ color: "var(--color-ink)" }}
+                onMouseDown={() => { onChange(s); setOpen(false); }}
+              >
+                {s}
+              </li>
+            ))
+          )}
         </ul>
       )}
     </div>
@@ -187,6 +315,15 @@ export default function PedidoPage() {
   const [queryId, setQueryId] = useState<string | null>(null);
   const pedido = api.pedido.useQuery({ id: queryId ?? "" }, { enabled: !!queryId });
 
+  // Deep-link: pre-fill from ?id= so a shared URL opens the verdict immediately.
+  useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get("id");
+    if (id) {
+      setIdInput(id);
+      setQueryId(id);
+    }
+  }, []);
+
   // ── Simulator ──
   const [cedis,  setCedis]  = useState("");
   const [sku,    setSku]    = useState("");
@@ -195,11 +332,13 @@ export default function PedidoPage() {
   const simular = api.simular.useMutation();
 
   const cedisValid = cat?.cedis.includes(cedis) ?? false;
+  const skuValid = cat?.skus.includes(sku) ?? false;
 
   const addLinea = () => {
-    if (!sku.trim()) return;
+    if (!skuValid) return;
     setLineas((prev) => [...prev, { nombre_sku: sku.trim(), quantity: qty || 1 }]);
     setSku("");
+    setQty(1);
   };
 
   return (
@@ -222,7 +361,7 @@ export default function PedidoPage() {
           <div className="flex gap-2">
             <input
               className="input"
-              placeholder="Ej. 8839440000000000000"
+              placeholder="Ej. 8895360000000000000"
               value={idInput}
               inputMode="numeric"
               onChange={(e) => setIdInput(e.target.value)}
@@ -241,9 +380,10 @@ export default function PedidoPage() {
           )}
 
           {pedido.data && (
-            <div className="mt-3">
-              <ScoreHeader score={pedido.data.score_pedido} nivel={pedido.data.nivel_pedido} />
-              <div className="mt-3 grid grid-cols-2 gap-2">
+            <div className="mt-4 space-y-3">
+              <RiskSummary lineas={pedido.data.lineas as Linea[]} />
+
+              <div className="grid grid-cols-3 gap-2">
                 <Info label="Bodega"    value={pedido.data.cabecera.cedis} />
                 <Info label="País"      value={pedido.data.cabecera.pais ?? "—"} />
                 <Info label="Categoría" value={pedido.data.cabecera.business_unit ?? "—"} />
@@ -255,9 +395,10 @@ export default function PedidoPage() {
                     : "—"
                 } />
               </div>
+
               {pedido.data.cabecera.nota_ambiguedad && (
                 <div
-                  className="mt-3 rounded-xl px-3 py-2.5 text-[11px]"
+                  className="rounded-xl px-3 py-2.5 text-[11px]"
                   style={{
                     border: "1px solid var(--color-border)",
                     background: "var(--color-surface)",
@@ -267,8 +408,8 @@ export default function PedidoPage() {
                   ⚠️ {pedido.data.cabecera.nota_ambiguedad}
                 </div>
               )}
-              <EarlyWarningBanner lineas={pedido.data.lineas as Linea[]} />
-              <LineasList lineas={pedido.data.lineas as Linea[]} />
+
+              <LineasCards lineas={pedido.data.lineas as Linea[]} />
             </div>
           )}
         </section>
@@ -284,11 +425,17 @@ export default function PedidoPage() {
             value={cedis}
             onChange={setCedis}
             items={cat?.cedis ?? []}
-            placeholder="Escribe el nombre o código de tu bodega…"
+            placeholder="Escribe el código de tu bodega…"
           />
-          <p className="mb-3 mt-1 text-[10px] text-muted">
-            Escribe para filtrar · selecciona de la lista para confirmar
-          </p>
+          {cedis && !cedisValid ? (
+            <p className="mb-3 mt-1 text-[10px] text-rojo">
+              Esa bodega no existe — selecciona una de la lista
+            </p>
+          ) : (
+            <p className="mb-3 mt-1 text-[10px] text-muted">
+              {cedisValid ? `✓ Bodega ${cedis} confirmada` : "Haz click en el campo para ver opciones"}
+            </p>
+          )}
 
           <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-muted">
             Añadir productos
@@ -301,14 +448,26 @@ export default function PedidoPage() {
               placeholder="Escribe el nombre del producto…"
             />
             <input
-              className="input !w-20"
+              className="input !w-16 text-center"
               type="number"
               min={1}
               value={qty}
               onChange={(e) => setQty(parseInt(e.target.value, 10) || 1)}
             />
-            <button className="btn-ghost shrink-0 px-3" onClick={addLinea}>+</button>
+            <button
+              className="btn shrink-0 !px-4"
+              onClick={addLinea}
+              disabled={!skuValid}
+              title={skuValid ? "Agregar al pedido" : "Selecciona un producto válido primero"}
+            >
+              Agregar
+            </button>
           </div>
+          {sku && !skuValid && (
+            <p className="mt-1 text-[10px] text-rojo">
+              Selecciona un producto de la lista
+            </p>
+          )}
 
           {lineas.length > 0 && (
             <div className="mt-3 space-y-1">
@@ -337,6 +496,11 @@ export default function PedidoPage() {
               className="btn flex-1"
               disabled={!cedisValid || !lineas.length || simular.isPending}
               onClick={() => simular.mutate({ cedis, lineas })}
+              title={
+                !cedisValid ? "Selecciona una bodega válida" :
+                !lineas.length ? "Agrega al menos un producto" :
+                "Verificar disponibilidad"
+              }
             >
               {simular.isPending ? "Calculando…" : "Verificar disponibilidad"}
             </button>
@@ -344,21 +508,18 @@ export default function PedidoPage() {
               className="btn-ghost"
               onClick={() => { setLineas([]); simular.reset(); }}
             >
-              Limpiar lista
+              Limpiar
             </button>
           </div>
-          {!cedisValid && cedis && (
-            <p className="mt-1 text-[10px] text-rojo">Selecciona una bodega válida de la lista</p>
-          )}
 
           {simular.data && (
-            <div className="mt-4">
-              <ScoreHeader score={simular.data.score_pedido} nivel={simular.data.nivel_pedido} />
-              <p className="mt-2 text-[11px] text-muted">
-                Bodega: {simular.data.cedis} · tasa de cambios: {(simular.data.tasa_cedis * 100).toFixed(1)}%
+            <div className="mt-4 space-y-3">
+              <RiskSummary lineas={simular.data.lineas as Linea[]} />
+              <p className="text-[11px] text-muted">
+                Bodega: <span className="font-semibold text-ink">{simular.data.cedis}</span>
+                {" · "}tasa de cambios histórica del CEDIS: {(simular.data.tasa_cedis * 100).toFixed(1)}%
               </p>
-              <EarlyWarningBanner lineas={simular.data.lineas as Linea[]} />
-              <LineasList lineas={simular.data.lineas as Linea[]} />
+              <LineasCards lineas={simular.data.lineas as Linea[]} />
             </div>
           )}
         </section>
