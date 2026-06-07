@@ -1,6 +1,6 @@
 // Shared navigation tabs — used by BottomNav (mobile) and NavSidebar (desktop).
 export const NAV_TABS = [
-  { href: "/",         label: "Inicio",      icon: "📊" },
-  { href: "/semaforo", label: "Alertas",    icon: "🚦" },
-  { href: "/pedido",   label: "Mis Pedidos", icon: "🧾" },
+  { href: "/",         label: "Mis Pedidos",  icon: "🧾" },
+  { href: "/semaforo", label: "Alertas",      icon: "🚦" },
+  { href: "/resumen",  label: "Estadísticas", icon: "📊" },
 ] as const;

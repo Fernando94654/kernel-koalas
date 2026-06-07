@@ -180,6 +180,7 @@ export async function getSemaforo(pais?: string, businessUnit?: string) {
     lineas_amarillo: s.lineas_amarillo as number,
     tasa_afectacion: s.tasa_afectacion as number,
     nivel: s.nivel as Nivel,
+    por_pais: (s.por_pais ?? {}) as Record<string, number>,
   }));
 }
 

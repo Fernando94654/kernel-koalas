@@ -47,8 +47,8 @@ export function HBar({ data, height = 280, suffix = "", color = COLORS.azul }: {
           axisLine={false} tickLine={false}
         />
         <YAxis
-          type="category" dataKey="label" width={130} tick={TICK_STYLE}
-          tickFormatter={(v: string) => truncate(v, 20)}
+          type="category" dataKey="label" width={170} tick={TICK_STYLE}
+          tickFormatter={(v: string) => truncate(v, 30)}
           axisLine={false} tickLine={false}
         />
         <Tooltip content={<ChartTooltip suffix={suffix} />} />
