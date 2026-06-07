@@ -41,13 +41,13 @@ function RiskSummary({ lineas }: { lineas: Linea[] }) {
     bannerNivel === "Verde"
       ? `✅ Tu pedido sale prácticamente completo`
       : bannerNivel === "Amarillo"
-        ? `⚠️ ${pct.toFixed(1)}% de tu pedido podría venir cambiado`
-        : `🚨 Alto riesgo: ${pct.toFixed(1)}% de tu pedido podría venir sustituido`;
+        ? `⚠️ Hay ${pct.toFixed(1)}% de probabilidad de que tu pedido venga con cambios`
+        : `🚨 Alto riesgo: ${pct.toFixed(1)}% de probabilidad de que tu pedido venga sustituido`;
 
   const detail =
     unidadesEnRiesgo === 0
-      ? `${totalUnidades} unidades · sin sustituciones probables · ${pct.toFixed(1)}% de riesgo`
-      : `≈ ${unidadesEnRiesgo} de ${totalUnidades} unidades en riesgo · ${lineasMarcadas} producto${lineasMarcadas === 1 ? "" : "s"} marcado${lineasMarcadas === 1 ? "" : "s"}`;
+      ? `${totalUnidades} unidades · sin sustituciones probables`
+      : `${lineasMarcadas} producto${lineasMarcadas === 1 ? "" : "s"} en riesgo · revisa los detalles abajo`;
 
   return (
     <div
