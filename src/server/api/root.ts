@@ -3,7 +3,7 @@ import { z } from "zod";
 import { createCallerFactory, createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import {
   getEda, getGraphPayload, getSemaforo, getCedisDetalle,
-  getPedido, simular, getSustitutos,
+  getPedido, simular, getSustitutos, registrarPedido,
 } from "~/server/data";
 import { chat, type ChatMsg } from "~/server/chatbot";
 
@@ -37,6 +37,10 @@ export const appRouter = createTRPCRouter({
   simular: publicProcedure
     .input(z.object({ cedis: z.string(), lineas: z.array(lineaSchema) }))
     .mutation(({ input }) => simular(input.cedis, input.lineas)),
+
+  registrarPedido: publicProcedure
+    .input(z.object({ cedis: z.string(), lineas: z.array(lineaSchema) }))
+    .mutation(({ input }) => registrarPedido(input.cedis, input.lineas)),
 
   chat: publicProcedure
     .input(z.object({ message: z.string(), history: z.array(msgSchema).default([]) }))

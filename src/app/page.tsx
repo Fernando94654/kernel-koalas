@@ -306,6 +306,86 @@ function SearchPicker({
   );
 }
 
+function SearchPickerEnter(props: {
+  value: string;
+  onChange: (v: string) => void;
+  items: string[];
+  placeholder: string;
+  onEnter: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const filtered =
+    props.value.trim() === ""
+      ? props.items.slice(0, 30)
+      : props.items
+          .filter((s) => s.toLowerCase().includes(props.value.toLowerCase()))
+          .slice(0, 30);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  return (
+    <div ref={containerRef} className="relative flex-1">
+      <input
+        className="input w-full"
+        placeholder={props.placeholder}
+        value={props.value}
+        onChange={(e) => { props.onChange(e.target.value); setOpen(true); }}
+        onFocus={() => setOpen(true)}
+        onKeyDown={(e) => {
+          if (e.key === "Escape") setOpen(false);
+          if (e.key === "Enter") {
+            // si hay match parcial, selecciónalo; si no, dispara el callback
+            if (!props.items.includes(props.value) && filtered[0]) {
+              props.onChange(filtered[0]);
+              setOpen(false);
+              return;
+            }
+            setOpen(false);
+            props.onEnter();
+          }
+        }}
+        autoComplete="off"
+      />
+      {open && (
+        <ul
+          className="absolute left-0 right-0 top-full z-50 mt-1 overflow-y-auto rounded-xl border py-1"
+          style={{
+            background: "var(--color-card)",
+            borderColor: "var(--color-border)",
+            boxShadow: "0 8px 24px rgba(0,0,0,.18)",
+            maxHeight: 240,
+          }}
+        >
+          {filtered.length === 0 ? (
+            <li className="px-3 py-2 text-[12px] text-muted">Sin coincidencias</li>
+          ) : (
+            filtered.map((s) => (
+              <li
+                key={s}
+                className="cursor-pointer px-3 py-2 text-sm transition-colors hover:bg-surface"
+                style={{ color: "var(--color-ink)" }}
+                onMouseDown={() => { props.onChange(s); setOpen(false); }}
+              >
+                {s}
+              </li>
+            ))
+          )}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 export default function PedidoPage() {
   const eda = api.eda.useQuery();
   const cat = eda.data?.catalogos;
@@ -330,12 +410,14 @@ export default function PedidoPage() {
   const [qty,    setQty]    = useState(1);
   const [lineas, setLineas] = useState<{ nombre_sku: string; quantity: number }[]>([]);
   const simular = api.simular.useMutation();
+  const registrar = api.registrarPedido.useMutation();
 
   const cedisValid = cat?.cedis.includes(cedis) ?? false;
   const skuValid = cat?.skus.includes(sku) ?? false;
+  const canAdd = sku.trim().length > 0;
 
   const addLinea = () => {
-    if (!skuValid) return;
+    if (!canAdd) return;
     setLineas((prev) => [...prev, { nombre_sku: sku.trim(), quantity: qty || 1 }]);
     setSku("");
     setQty(1);
@@ -441,11 +523,12 @@ export default function PedidoPage() {
             Añadir productos
           </label>
           <div className="flex gap-2">
-            <SearchPicker
+            <SearchPickerEnter
               value={sku}
               onChange={setSku}
               items={cat?.skus ?? []}
               placeholder="Escribe el nombre del producto…"
+              onEnter={addLinea}
             />
             <input
               className="input !w-16 text-center"
@@ -457,39 +540,51 @@ export default function PedidoPage() {
             <button
               className="btn shrink-0 !px-4"
               onClick={addLinea}
-              disabled={!skuValid}
-              title={skuValid ? "Agregar al pedido" : "Selecciona un producto válido primero"}
+              disabled={!canAdd}
             >
               Agregar
             </button>
           </div>
           {sku && !skuValid && (
-            <p className="mt-1 text-[10px] text-rojo">
-              Selecciona un producto de la lista
+            <p className="mt-1 text-[10px]" style={{ color: "var(--color-muted)" }}>
+              ⚠ Ese nombre no existe en el catálogo — se calculará con la tasa promedio del CEDIS.
             </p>
           )}
 
-          {lineas.length > 0 && (
-            <div className="mt-3 space-y-1">
-              {lineas.map((l, i) => (
-                <div
-                  key={i}
-                  className="flex items-center justify-between gap-2 rounded-xl border border-border bg-surface px-3 py-2 text-sm"
-                >
-                  <span className="min-w-0 break-words text-ink">
-                    {l.nombre_sku}{" "}
-                    <span className="text-muted">×{l.quantity}</span>
-                  </span>
-                  <button
-                    className="ml-2 shrink-0 text-muted transition-colors hover:text-rojo"
-                    onClick={() => setLineas((prev) => prev.filter((_, j) => j !== i))}
+          {/* Lista de productos agregados (con estado vacío visible) */}
+          <div className="mt-3">
+            <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted">
+              Productos en este pedido ({lineas.length})
+            </p>
+            {lineas.length === 0 ? (
+              <div
+                className="rounded-xl border border-dashed px-3 py-4 text-center text-[12px] text-muted"
+                style={{ borderColor: "var(--color-border)" }}
+              >
+                Aún no agregaste productos. Escribe arriba y presiona <strong>Agregar</strong> o <kbd>Enter</kbd>.
+              </div>
+            ) : (
+              <div className="space-y-1">
+                {lineas.map((l, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center justify-between gap-2 rounded-xl border border-border bg-surface px-3 py-2 text-sm"
                   >
-                    ✕
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
+                    <span className="min-w-0 break-words text-ink">
+                      {l.nombre_sku}{" "}
+                      <span className="text-muted">×{l.quantity}</span>
+                    </span>
+                    <button
+                      className="ml-2 shrink-0 text-muted transition-colors hover:text-rojo"
+                      onClick={() => setLineas((prev) => prev.filter((_, j) => j !== i))}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
           <div className="mt-4 flex gap-2">
             <button
@@ -506,7 +601,7 @@ export default function PedidoPage() {
             </button>
             <button
               className="btn-ghost"
-              onClick={() => { setLineas([]); simular.reset(); }}
+              onClick={() => { setLineas([]); simular.reset(); registrar.reset(); }}
             >
               Limpiar
             </button>
@@ -520,6 +615,44 @@ export default function PedidoPage() {
                 {" · "}tasa de cambios histórica del CEDIS: {(simular.data.tasa_cedis * 100).toFixed(1)}%
               </p>
               <LineasCards lineas={simular.data.lineas as Linea[]} />
+
+              {/* Registrar el pedido */}
+              {!registrar.data && (
+                <button
+                  className="btn w-full"
+                  disabled={registrar.isPending}
+                  onClick={() => registrar.mutate({ cedis, lineas })}
+                >
+                  {registrar.isPending ? "Registrando…" : "Registrar este pedido"}
+                </button>
+              )}
+
+              {registrar.data && (
+                <div
+                  className="rounded-2xl px-4 py-4"
+                  style={{
+                    border: `1px solid ${nivelColor.Verde}55`,
+                    background: `${nivelColor.Verde}12`,
+                  }}
+                >
+                  <p className="text-[14px] font-bold" style={{ color: nivelColor.Verde }}>
+                    ✅ Pedido registrado
+                  </p>
+                  <p className="mt-1 text-[11px] text-muted">
+                    ID: <span className="font-mono text-ink">{registrar.data.id_pedido}</span>
+                  </p>
+                  <p className="mt-1 text-[11px] text-muted">
+                    Te avisaremos antes del envío si alguno de tus productos podría venir cambiado.
+                  </p>
+                  <a
+                    href={`/?id=${registrar.data.id_pedido}`}
+                    className="mt-2 inline-block text-[11px] font-semibold underline"
+                    style={{ color: nivelColor.Verde }}
+                  >
+                    Ver mi pedido →
+                  </a>
+                </div>
+              )}
             </div>
           )}
         </section>
