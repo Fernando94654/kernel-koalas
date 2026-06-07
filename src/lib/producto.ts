@@ -48,7 +48,8 @@ export function visualBebida(nombre: string): Visual {
 }
 
 // ── Imágenes reales ──────────────────────────────────────────────────────
-// Archivos presentes en /public/productos/ (con su extensión real).
+// ARCHIVO = "fuente de verdad": solo los archivos que EXISTEN en /public/productos.
+// Para agregar una marca nueva: pon el archivo en esa carpeta y descomenta su línea.
 const ARCHIVO: Record<string, string> = {
   "coca-cola":     "coca-cola.jpg",
   "pepsi":         "pepsi.jpg",
@@ -65,37 +66,79 @@ const ARCHIVO: Record<string, string> = {
   "del-valle":     "del-valle.jpg",
   "santa-clara":   "santa-clara.png",
   "ades":          "ades.jpeg",
-  "agua":          "agua.jpg",
+  // ── Pendientes (descomenta al agregar el archivo correspondiente) ──
+  // "agua":        "agua.jpg",          // agua genérica
+   "dasani":      "dasani.jpg",        // agua Dasani
+   "benedictino": "benedictino.jpg",   // agua mineral Benedictino / Güitig / Tesalia
+   "fioravanti":  "fioravanti.jpg",    // refresco Fioravanti
+  // ── Snacks y otros productos (no bebidas) que aparecen en riesgo ──
+   "tostitos":    "tostitos-jalapenos.jpg", // Tostitos Jalapeños
+   "stayfree":    "stayfree.jpg",            // Toallas Femeninas Stayfree
+   "sarita":      "sarita-rizada.jpg",       // Saritas / Papa Sarita Rizada
+   "bizcotela":   "bizcotelas.jpg",          // Bizcotelas
+   "caffelato":   "caffelato.jpg",           // Caffelato
+  // "crush":       "crush.jpg",         // refresco Crush
+  // "schweppes":   "schweppes.jpg",     // agua tónica Schweppes
+  // "predator":    "predator.jpg",      // energéticas (Predator / Fury / V220)
+  // "aquarius":    "aquarius.jpg",      // bebida Aquarius
+  // "vitaminwater":"vitaminwater.jpg",  // Glacéau Vitaminwater
+  // "fuze-tea":    "fuze-tea.jpg",      // té Fuze Tea
+  // "jugo":        "jugo.jpg",          // jugos varios (Pulpy / Cepita / Frutsi / Tampico / Profit / Joya)
+  // "yogur":       "yogur.jpg",         // yogurt bebible (Toni / Chiqui / Mix)
 };
 
-// keyword detectada → slug de imagen. Primer match gana.
+// keyword detectada → slug de imagen. Primer match gana (¡el orden importa!).
 const IMG_REGLAS: [RegExp, string][] = [
+  // Snacks y otros (no bebidas) que aparecen en riesgo de sustitución
+  [/tostitos/i, "tostitos"],
+  [/stayfree|toallas?\s?femenin/i, "stayfree"],
+  [/sarita/i, "sarita"],
+  [/bizcotela/i, "bizcotela"],
+  [/caffelato/i, "caffelato"],
+  // Refrescos / colas
   [/coca|coca\s?-?cola/i, "coca-cola"],
   [/pepsi/i, "pepsi"],
   [/sprite/i, "sprite"],
   [/fanta/i, "fanta"],
   [/fresca/i, "fresca"],
+  [/fioravanti/i, "fioravanti"],
+  [/crush/i, "crush"],
+  [/schweppes|t[oó]nica/i, "schweppes"],
   [/sidral|mundet|manzanita/i, "sidral-mundet"],
+  // Aguas
   [/ciel/i, "ciel"],
   [/bonafont/i, "bonafont"],
   [/topo\s?chico/i, "topo-chico"],
+  [/dasani/i, "dasani"],
+  [/benedictino|g[uü]itig|tesalia/i, "benedictino"],
+  // Energéticas / deportivas
   [/powerade/i, "powerade"],
   [/gatorade/i, "gatorade"],
   [/monster/i, "monster"],
-  // Jugos / néctares → imagen de Del Valle (jugo)
+  [/predator|fury|red\s?bull|v220|energ/i, "predator"],
+  [/aquarius/i, "aquarius"],
+  [/vitaminwater|glac[eé]au/i, "vitaminwater"],
+  // Lácteos — ANTES que jugos para que "Leche/Yogurt … Frutilla" no caiga en jugo
+  [/yogur|yoghurt/i, "yogur"],
+  [/santa\s?clara|leche|avena|l[aá]cteo|lacteo/i, "santa-clara"],
+  [/ades|adés|almendra|soya/i, "ades"],
+  // Tés
+  [/fuze|tea/i, "fuze-tea"],
+  // Jugos / néctares
+  [/pulpy|cepita|frutsi|tampico|profit|joya/i, "jugo"],
   [/del\s?valle|valle|jugo|nectar|néctar|frut|durazno/i, "del-valle"],
-  [/santa\s?clara|leche|lácteo|lacteo/i, "santa-clara"],
-  [/ades|adés|almendra|soya|avena/i, "ades"],
+  // Agua genérica (al final)
   [/agua|mineral/i, "agua"],
 ];
 
-// Devuelve la ruta de la imagen real o null si no hay match (usa el ícono).
+// Devuelve la ruta de la imagen real, o null si no hay archivo (entonces se usa el ícono).
 export function imagenBebida(nombre: string): string | null {
   const n = nombre ?? "";
   for (const [re, slug] of IMG_REGLAS) {
     if (re.test(n)) {
       const file = ARCHIVO[slug];
       if (file) return `/productos/${file}`;
+      // si la regla coincide pero aún no hay archivo, seguimos buscando otra regla
     }
   }
   return null;

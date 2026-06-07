@@ -2,8 +2,8 @@ import { type Config } from "tailwindcss";
 
 export default {
   content: ["./src/**/*.{js,ts,jsx,tsx}"],
-  // "media" = automatically follows the OS dark/light preference
-  darkMode: "media",
+  // "class" = nunca sigue el modo oscuro del SO; la app queda siempre en claro.
+  darkMode: "class",
   theme: {
     extend: {
       fontFamily: {

@@ -5,9 +5,7 @@ import { Hanken_Grotesk, JetBrains_Mono } from "next/font/google";
 
 import { TRPCReactProvider } from "~/trpc/react";
 import { SessionProviderWrapper } from "~/components/SessionProviderWrapper";
-import { BottomNav } from "~/components/BottomNav";
-import { NavSidebar } from "~/components/NavSidebar";
-import { ChatWidget } from "~/components/ChatWidget";
+import { AppShell } from "~/components/AppShell";
 import { ServiceWorkerRegister } from "~/components/ServiceWorkerRegister";
 
 // Headline + body — geometric, friendly, on-brand for Arca Continental.
@@ -46,37 +44,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <SessionProviderWrapper>
         <TRPCReactProvider>
-          <div className="app-shell">
-
-            {/* ── Full-width sticky header ── */}
-            <header className="app-header">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/20 text-xl backdrop-blur-sm">
-                🥤
-              </div>
-              <div className="flex-1 leading-tight">
-                <div className="font-extrabold tracking-tight">Order Rescue</div>
-                <div className="text-[11px] opacity-80">Arca Continental</div>
-              </div>
-              {/* Desktop tagline */}
-              <p className="hidden text-xs font-medium opacity-70 md:block">
-                Disponibilidad en Tiempo Real
-              </p>
-            </header>
-
-            {/* ── Desktop sidebar (hidden on mobile via CSS) ── */}
-            <NavSidebar />
-
-            {/* ── Page content ── */}
-            <main className="app-main">{children}</main>
-
-            <ChatWidget />
-
-            {/* ── Bottom nav: mobile only ── */}
-            <div className="md:hidden">
-              <BottomNav />
-            </div>
-
-          </div>
+          <AppShell>{children}</AppShell>
           <ServiceWorkerRegister />
         </TRPCReactProvider>
         </SessionProviderWrapper>

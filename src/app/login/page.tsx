@@ -1,35 +1,132 @@
 "use client";
 
 import { signIn } from "next-auth/react";
+import { ProductThumb } from "~/components/ProductThumb";
 
-export default function LoginPage() {
+export default function LandingPage() {
   return (
-    <div className="flex min-h-[70vh] items-center justify-center px-4">
-      <div className="card w-full max-w-sm text-center">
-        {/* Logo */}
-        <div
-          className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl text-3xl shadow-fab"
-          style={{ background: "linear-gradient(120deg, #C20000 0%, #8F0000 100%)" }}
-        >
-          🥤
+    <div className="grid min-h-[100dvh] grid-cols-1 bg-card lg:grid-cols-2">
+      {/* ── Columna izquierda: bienvenida + acceso ── */}
+      <div className="flex flex-col justify-between px-6 py-10 sm:px-12 lg:px-16">
+        {/* Marca */}
+        <div className="flex items-center gap-3">
+          <div
+            className="flex h-10 w-10 items-center justify-center rounded-xl text-xl text-white shadow-fab"
+            style={{ background: "linear-gradient(120deg, #C20000 0%, #8F0000 100%)" }}
+          >
+            🥤
+          </div>
+          <div className="leading-tight">
+            <div className="text-[15px] font-extrabold tracking-tight text-ink">Order Rescue</div>
+            <div className="font-mono text-[11px] text-muted">Arca Continental</div>
+          </div>
         </div>
 
-        <h1 className="mb-1 text-xl font-extrabold tracking-tight text-ink">Order Rescue</h1>
-        <p className="mb-6 text-xs text-muted">
-          Verifica que tus pedidos lleguen completos antes de salir de la bodega.
-        </p>
+        {/* Centro: copy + CTA */}
+        <div className="mx-auto w-full max-w-md py-10">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1 font-mono text-[10px] font-semibold uppercase tracking-widest text-rojo">
+            Disponibilidad en tiempo real
+          </span>
+          <h1 className="mt-4 text-3xl font-extrabold leading-tight tracking-tight text-ink sm:text-4xl">
+            Anticipa las sustituciones antes de que salgan de la bodega.
+          </h1>
+          <p className="mt-3 text-[15px] leading-relaxed text-muted">
+            Order Rescue revisa cada pedido y te avisa qué productos podrían llegar cambiados,
+            con qué se suelen reemplazar y dónde está el mayor riesgo del mercado.
+          </p>
 
-        {/* Google sign-in button */}
-        <button
-          onClick={() => signIn("google", { callbackUrl: "/" })}
-          className="flex w-full items-center justify-center gap-3 rounded-xl border px-4 py-3 text-sm font-semibold text-ink transition-colors hover:bg-surface"
-          style={{ borderColor: "var(--color-border)", background: "var(--color-card)" }}
-        >
-          <GoogleIcon />
-          Continuar con Google
-        </button>
+          {/* Features */}
+          <div className="mt-7 space-y-3">
+            <Feature icon="🚦" title="Riesgo por pedido" desc="Ve línea por línea qué tan probable es una sustitución." />
+            <Feature icon="📊" title="Alertas de mercado" desc="Tendencias de sustitución por región y producto." />
+            <Feature icon="💬" title="Asistente IA" desc="Pregunta sobre CEDIS, SKUs y pedidos en lenguaje natural." />
+          </div>
 
-        <p className="mt-6 text-[10px] text-muted">Arca Continental · Hackathon 2025</p>
+          {/* Sign-in */}
+          <button
+            onClick={() => signIn("google", { callbackUrl: "/" })}
+            className="mt-8 flex w-full items-center justify-center gap-3 rounded-xl border px-4 py-3.5 text-sm font-semibold text-ink transition-colors hover:bg-surface"
+            style={{ borderColor: "var(--color-border)", background: "var(--color-card)" }}
+          >
+            <GoogleIcon />
+            Continuar con Google
+          </button>
+          <p className="mt-3 text-center text-[11px] text-muted">
+            Al continuar aceptas el uso interno de Arca Continental.
+          </p>
+        </div>
+
+        {/* Footer */}
+        <p className="font-mono text-[10px] text-muted">Arca Continental · Order Rescue · Hackathon 2025</p>
+      </div>
+
+      {/* ── Columna derecha: showcase (solo desktop) ── */}
+      <div className="relative hidden overflow-hidden lg:block" style={{ background: "linear-gradient(150deg, #C20000 0%, #8F0000 100%)" }}>
+        {/* Patrón sutil */}
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.12]"
+          style={{
+            backgroundImage: "radial-gradient(circle at 1px 1px, #fff 1px, transparent 0)",
+            backgroundSize: "22px 22px",
+          }}
+        />
+        <div className="relative flex h-full items-center justify-center p-12">
+          <PreviewCard />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Feature({ icon, title, desc }: { icon: string; title: string; desc: string }) {
+  return (
+    <div className="flex items-start gap-3">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border bg-surface text-base">
+        {icon}
+      </span>
+      <div>
+        <p className="text-[13px] font-semibold text-ink">{title}</p>
+        <p className="text-[12px] text-muted">{desc}</p>
+      </div>
+    </div>
+  );
+}
+
+// Tarjeta de muestra del producto — da contexto visual de la app.
+function PreviewCard() {
+  const rows = [
+    { nombre: "Coca-Cola 600ml", unidades: 48, nivel: "ALTO", color: "#C20000" },
+    { nombre: "Agua Ciel 1L", unidades: 120, nivel: "MEDIO", color: "#E8A317" },
+    { nombre: "Powerade Ion4 500ml", unidades: 24, nivel: "BAJO", color: "#15924B" },
+  ];
+  return (
+    <div className="w-full max-w-sm rounded-3xl bg-card p-5 shadow-2xl">
+      <div className="mb-1 font-mono text-[10px] font-semibold uppercase tracking-widest text-muted">
+        Líneas de Pedido
+      </div>
+      <div className="mb-4 text-[15px] font-extrabold tracking-tight text-ink">Pedido AC-882910</div>
+      <div className="space-y-2">
+        {rows.map((r) => (
+          <div
+            key={r.nombre}
+            className="flex items-center gap-3 rounded-2xl border border-border bg-card py-2.5 pr-3"
+            style={{ borderLeft: `3px solid ${r.color}` }}
+          >
+            <span className="pl-2.5" />
+            <ProductThumb nombre={r.nombre} size={40} />
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[13px] font-semibold text-ink">{r.nombre}</p>
+              <span className="mt-0.5 inline-flex items-center gap-1.5 font-mono text-[9px] font-semibold" style={{ color: r.color }}>
+                <span className="h-1.5 w-1.5 rounded-full" style={{ background: r.color }} />
+                RIESGO {r.nivel}
+              </span>
+            </div>
+            <div className="shrink-0 text-right">
+              <p className="text-[14px] font-bold leading-none text-ink">{r.unidades}</p>
+              <p className="mt-0.5 text-[9px] text-muted">Unidades</p>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

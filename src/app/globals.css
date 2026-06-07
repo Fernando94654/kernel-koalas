@@ -30,30 +30,8 @@
   --chat-fab-bottom: 84px;
 }
 
-/* ── Design tokens: dark mode ──────────────────────────────────────── */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-ink:     #F2F2F4;
-    --color-muted:   #8A8A92;
-    --color-surface: #1A1A1F;
-    --color-border:  #2A2A30;
-    --color-card:    #141418;
-
-    /* Sidebar is visibly elevated above the page */
-    --color-page:    #0B0B0D;
-    --color-shell:   #0B0B0D;
-    --color-sidebar: #131317;
-
-    --color-nav-active-bg:   #2A0C0C;
-    --color-nav-active-text: #FF6B6B;
-
-    /* Brighter reds for readability on dark backgrounds (dots, badges) */
-    --rojo:      #FF5252;
-    --rojo-dark: #C20000;
-    --amarillo:  #F5BE4B;
-    --verde:     #34C77B;
-  }
-}
+/* La app está forzada a modo claro (blanco) — no se sigue la preferencia
+   de modo oscuro del sistema operativo. */
 
 @media (min-width: 768px) {
   :root { --chat-fab-bottom: 32px; }
@@ -61,6 +39,9 @@
 
 /* ── Base ──────────────────────────────────────────────────────────── */
 html, body { height: 100%; }
+
+/* Fuerza controles nativos (inputs, scrollbars) en estilo claro */
+:root { color-scheme: light; }
 
 body {
   background: var(--color-page);
@@ -128,12 +109,6 @@ h1, h2, h3 { letter-spacing: -0.015em; }
     overflow-y: auto;
     z-index: 30;
     transition: background 0.3s ease, border-color 0.3s ease;
-  }
-}
-
-@media (min-width: 768px) and (prefers-color-scheme: dark) {
-  .app-sidebar {
-    box-shadow: 2px 0 16px rgba(0, 0, 0, 0.4);
   }
 }
 
