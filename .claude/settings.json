@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -rn \"nivelEmoji\" src/)",
+      "Bash(sed -n '544,547p' src/app/page.tsx)",
+      "Bash(sed -n '148,156p;200,210p' src/components/CedisMap.tsx)",
+      "PowerShell(Set-Location C:\\\\Users\\\\X1504\\\\Documentacion\\\\kernel-koalas; $env:NODE_ENV=$null; npm run dev)"
+    ]
+  }
+}

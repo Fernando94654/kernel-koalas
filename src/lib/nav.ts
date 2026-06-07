@@ -1,6 +1,10 @@
 // Shared navigation tabs — used by BottomNav (mobile) and NavSidebar (desktop).
-export const NAV_TABS = [
-  { href: "/",          label: "Mis Pedidos", icon: "🧾" },
-  { href: "/semaforo",  label: "Alertas",     icon: "🚦" },
-  { href: "/asistente", label: "Asistente",   icon: "🤖" },
-] as const;
+import { Receipt, Siren, Bot, type LucideIcon } from "lucide-react";
+
+export type NavTab = { href: string; label: string; icon: LucideIcon };
+
+export const NAV_TABS: NavTab[] = [
+  { href: "/",          label: "Mis Pedidos", icon: Receipt },
+  { href: "/semaforo",  label: "Alertas",     icon: Siren },
+  { href: "/asistente", label: "Asistente",   icon: Bot },
+];

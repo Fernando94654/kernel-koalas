@@ -1,7 +1,23 @@
 "use client";
 
 import { useState } from "react";
-import { imagenBebida, visualBebida } from "~/lib/producto";
+import {
+  CupSoda, GlassWater, Citrus, Zap, Milk, Leaf, Coffee, type LucideIcon,
+} from "lucide-react";
+
+import { categoriaBebida, imagenBebida, visualBebida, type BebidaCategoria } from "~/lib/producto";
+
+// Ícono Lucide por categoría — usado como respaldo cuando no hay imagen real.
+const ICONO: Record<BebidaCategoria, LucideIcon> = {
+  cola: CupSoda,
+  refresco: CupSoda,
+  agua: GlassWater,
+  jugo: Citrus,
+  energia: Zap,
+  lacteo: Milk,
+  vegetal: Leaf,
+  te: Coffee,
+};
 
 // Miniatura de bebida: muestra la foto real del producto (si existe) sobre un
 // fondo tenue con el acento de su categoría; si la imagen falla, cae al ícono.
@@ -12,7 +28,8 @@ export function ProductThumb({
   nombre: string;
   size?: number;
 }) {
-  const { glyph, tint } = visualBebida(nombre);
+  const { tint } = visualBebida(nombre);
+  const Icon = ICONO[categoriaBebida(nombre)];
   const src = imagenBebida(nombre);
   const [failed, setFailed] = useState(false);
   const showImg = src && !failed;
@@ -23,7 +40,6 @@ export function ProductThumb({
       style={{
         width: size,
         height: size,
-        fontSize: size * 0.5,
         background: `${tint}12`,
         border: `1px solid ${tint}26`,
         lineHeight: 1,
@@ -40,7 +56,7 @@ export function ProductThumb({
           style={{ width: "82%", height: "82%", objectFit: "contain" }}
         />
       ) : (
-        glyph
+        <Icon size={size * 0.5} style={{ color: tint }} strokeWidth={2} />
       )}
     </span>
   );

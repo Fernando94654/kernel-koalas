@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ComposableMap, Geographies, Geography } from "react-simple-maps";
+import { X } from "lucide-react";
 import { nivelColor } from "~/lib/ui";
 import type { Nivel } from "~/lib/model";
 
@@ -148,8 +149,10 @@ export function CedisMap({ rows, selectedPais, onSelect, mode = "pins" }: CedisM
               Tasa de cambios: <span className="font-semibold text-ink">{(tooltip.tasa * 100).toFixed(1)}%</span>
             </p>
           ) : (
-            <p className="text-muted">
-              🔴 {tooltip.counts.Rojo} · 🟡 {tooltip.counts.Amarillo} · 🟢 {tooltip.counts.Verde}
+            <p className="flex items-center gap-2 text-muted">
+              <span className="flex items-center gap-1"><Dot c={nivelColor.Rojo} />{tooltip.counts.Rojo}</span>
+              <span className="flex items-center gap-1"><Dot c={nivelColor.Amarillo} />{tooltip.counts.Amarillo}</span>
+              <span className="flex items-center gap-1"><Dot c={nivelColor.Verde} />{tooltip.counts.Verde}</span>
             </p>
           )}
         </div>
@@ -202,10 +205,14 @@ export function CedisMap({ rows, selectedPais, onSelect, mode = "pins" }: CedisM
             style={{ background: "var(--color-card)", borderColor: "var(--color-border)" }}
             onClick={() => onSelect("")}
           >
-            {selectedPais} ✕
+            {selectedPais} <X size={12} />
           </button>
         </div>
       )}
     </div>
   );
+}
+
+function Dot({ c }: { c: string }) {
+  return <span className="inline-block h-2 w-2 rounded-full" style={{ background: c }} />;
 }

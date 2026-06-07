@@ -4,8 +4,6 @@ import type { Nivel } from "~/lib/model";
 export const fmt = (n: number | null | undefined) => (n ?? 0).toLocaleString("es-MX");
 export const pct1 = (x: number) => (x * 100).toFixed(1) + "%";
 
-export const nivelEmoji: Record<Nivel, string> = { Rojo: "🔴", Amarillo: "🟡", Verde: "🟢" };
-
 export const COLORS = {
   rojo: "#C20000",
   amarillo: "#E8A317",

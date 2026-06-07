@@ -2,17 +2,20 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
+import { Package, Repeat, MapPin, BarChart3, ArrowUp, type LucideIcon } from "lucide-react";
 
 import { api } from "~/trpc/react";
 import { RichText } from "~/components/RichText";
+import { KoalaLogo } from "~/components/KoalaLogo";
 import type { ChatMsg } from "~/server/chatbot";
 
 const STORAGE_KEY = "orderRescueChat";
+const NOMBRE = "Koko";
 
 // Capacidades agrupadas — cada chip envía la pregunta al asistente.
-const CAPACIDADES = [
+const CAPACIDADES: { icon: LucideIcon; titulo: string; desc: string; prompts: string[] }[] = [
   {
-    icon: "📦",
+    icon: Package,
     titulo: "Tus pedidos",
     desc: "Revisa si un pedido llegará completo.",
     prompts: [
@@ -21,7 +24,7 @@ const CAPACIDADES = [
     ],
   },
   {
-    icon: "🔄",
+    icon: Repeat,
     titulo: "Sustituciones",
     desc: "Con qué se reemplaza cada producto.",
     prompts: [
@@ -30,7 +33,7 @@ const CAPACIDADES = [
     ],
   },
   {
-    icon: "🗺️",
+    icon: MapPin,
     titulo: "Zonas y bodegas",
     desc: "Dónde hay más riesgo de cambios.",
     prompts: [
@@ -39,7 +42,7 @@ const CAPACIDADES = [
     ],
   },
   {
-    icon: "📊",
+    icon: BarChart3,
     titulo: "Resumen del negocio",
     desc: "Métricas y tendencias clave.",
     prompts: [
@@ -114,11 +117,11 @@ export default function AsistentePage() {
         <aside className="space-y-3">
           <div className="card !p-4">
             <div className="flex items-center gap-2.5">
-              <AssistantAvatar size={36} />
+              <AssistantAvatar size={40} />
               <div>
-                <p className="text-[13px] font-bold text-ink">Order Rescue AI</p>
+                <p className="text-[13px] font-bold text-ink">{NOMBRE} · Asistente</p>
                 <p className="font-mono text-[10px] text-muted">
-                  {provider ? `● ${provider}` : "Asistente analítico"}
+                  {provider ? `● ${provider}` : "Order Rescue · Arca Continental"}
                 </p>
               </div>
             </div>
@@ -130,8 +133,8 @@ export default function AsistentePage() {
           {CAPACIDADES.map((c) => (
             <div key={c.titulo} className="card !p-3.5">
               <div className="flex items-start gap-2.5">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border bg-surface text-base">
-                  {c.icon}
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border bg-surface text-rojo">
+                  <c.icon size={16} />
                 </span>
                 <div className="min-w-0">
                   <p className="text-[13px] font-semibold text-ink">{c.titulo}</p>
@@ -160,11 +163,11 @@ export default function AsistentePage() {
           <div ref={scrollRef} className="no-scrollbar flex-1 space-y-4 overflow-y-auto p-5">
             {empty && (
               <div className="flex h-full flex-col items-center justify-center text-center">
-                <AssistantAvatar size={64} />
-                <h2 className="mt-4 text-xl font-bold text-ink">¡Hola! Soy tu asistente</h2>
+                <AssistantAvatar size={72} />
+                <h2 className="mt-4 text-2xl font-extrabold text-ink">¡Hola! Soy {NOMBRE}</h2>
                 <p className="mt-1 max-w-sm text-[13px] text-muted">
-                  Puedo revisar tus pedidos, decirte con qué suelen reemplazar tus productos
-                  y mostrarte dónde está el mayor riesgo. Elige una sugerencia o escríbeme.
+                  Tu copiloto de pedidos. Reviso si tu pedido llegará completo, te digo con qué
+                  suelen reemplazar tus productos y dónde está el mayor riesgo. Elige una sugerencia o escríbeme.
                 </p>
                 <div className="mt-5 flex flex-wrap justify-center gap-2">
                   {["¿Qué productos cambian más?", "Resumen ejecutivo", "¿Con qué reemplazan la Coca-Cola?"].map((q) => (
@@ -218,12 +221,12 @@ export default function AsistentePage() {
                 }}
               />
               <button
-                className="btn shrink-0 !rounded-xl !px-4 !py-2.5"
+                className="btn flex shrink-0 items-center justify-center !rounded-xl !px-3 !py-2.5"
                 onClick={() => send(input)}
                 disabled={chat.isPending || !input.trim()}
                 aria-label="Enviar"
               >
-                ↑
+                <ArrowUp size={18} />
               </button>
             </div>
             <p className="mt-1.5 px-1 text-center font-mono text-[10px] text-muted">
@@ -266,15 +269,10 @@ function Bubble({ role, content, avatar }: { role: string; content: string; avat
 function AssistantAvatar({ size = 32 }: { size?: number }) {
   return (
     <span
-      className="flex shrink-0 items-center justify-center rounded-xl text-white shadow-fab"
-      style={{
-        width: size,
-        height: size,
-        fontSize: size * 0.5,
-        background: "linear-gradient(135deg, #C20000 0%, #8F0000 100%)",
-      }}
+      className="flex shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-white shadow-sm"
+      style={{ width: size, height: size }}
     >
-      🤖
+      <KoalaLogo size={size * 0.78} />
     </span>
   );
 }

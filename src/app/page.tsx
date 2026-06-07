@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import { AlertTriangle, Warehouse, X, CheckCircle2 } from "lucide-react";
+
 import { api } from "~/trpc/react";
 import { fmt, nivelColor } from "~/lib/ui";
 import { ProductThumb } from "~/components/ProductThumb";
@@ -520,7 +522,10 @@ export default function PedidoPage() {
                     color: "var(--color-muted)",
                   }}
                 >
-                  ⚠️ {pedido.data.cabecera.nota_ambiguedad}
+                  <span className="flex items-start gap-1.5">
+                    <AlertTriangle size={13} className="mt-0.5 shrink-0" />
+                    <span>{pedido.data.cabecera.nota_ambiguedad}</span>
+                  </span>
                 </div>
               )}
 
@@ -543,7 +548,7 @@ export default function PedidoPage() {
             <div
               className="mb-3 flex items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2.5 text-[12px] text-muted"
             >
-              <span>🏭</span>
+              <Warehouse size={14} className="shrink-0" />
               <span>
                 Usando la zona de distribución de tu pedido anterior
                 <span className="ml-1 font-semibold text-ink">({pedido.data.cabecera.pais ?? "—"})</span>
@@ -603,8 +608,9 @@ export default function PedidoPage() {
             </button>
           </div>
           {sku && !skuValid && (
-            <p className="mt-1 text-[10px]" style={{ color: "var(--color-muted)" }}>
-              ⚠ Ese nombre no existe en el catálogo — se usará el promedio histórico de tu zona.
+            <p className="mt-1 flex items-center gap-1 text-[10px]" style={{ color: "var(--color-muted)" }}>
+              <AlertTriangle size={11} className="shrink-0" />
+              Ese nombre no existe en el catálogo — se usará el promedio histórico de tu zona.
             </p>
           )}
 
@@ -633,10 +639,11 @@ export default function PedidoPage() {
                       <span className="text-muted">×{l.quantity}</span>
                     </span>
                     <button
-                      className="ml-2 shrink-0 text-muted transition-colors hover:text-rojo"
+                      className="ml-2 flex shrink-0 items-center text-muted transition-colors hover:text-rojo"
                       onClick={() => setLineas((prev) => prev.filter((_, j) => j !== i))}
+                      aria-label="Quitar producto"
                     >
-                      ✕
+                      <X size={15} />
                     </button>
                   </div>
                 ))}
@@ -695,8 +702,8 @@ export default function PedidoPage() {
                     background: `${nivelColor.Verde}12`,
                   }}
                 >
-                  <p className="text-[14px] font-bold" style={{ color: nivelColor.Verde }}>
-                    ✅ Pedido registrado
+                  <p className="flex items-center gap-1.5 text-[14px] font-bold" style={{ color: nivelColor.Verde }}>
+                    <CheckCircle2 size={16} /> Pedido registrado
                   </p>
                   <p className="mt-1 text-[11px] text-muted">
                     ID: <span className="font-mono text-ink">{registrar.data.id_pedido}</span>

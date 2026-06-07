@@ -12,18 +12,19 @@ export type BebidaCategoria =
   | "te"
   | "refresco";
 
-type Visual = { glyph: string; tint: string };
+type Visual = { tint: string };
 
 // Acentos suaves por categoría — se usan como fondo tenue del thumbnail / fallback.
+// (El ícono visual lo decide ProductThumb con lucide-react.)
 const VISUAL: Record<BebidaCategoria, Visual> = {
-  cola:     { glyph: "🥤", tint: "#C20000" },
-  agua:     { glyph: "💧", tint: "#2E9BD6" },
-  jugo:     { glyph: "🧃", tint: "#E8A317" },
-  energia:  { glyph: "⚡", tint: "#15924B" },
-  lacteo:   { glyph: "🥛", tint: "#8A8A92" },
-  vegetal:  { glyph: "🌱", tint: "#15924B" },
-  te:       { glyph: "🍵", tint: "#15924B" },
-  refresco: { glyph: "🥤", tint: "#C20000" },
+  cola:     { tint: "#C20000" },
+  agua:     { tint: "#2E9BD6" },
+  jugo:     { tint: "#E8A317" },
+  energia:  { tint: "#15924B" },
+  lacteo:   { tint: "#8A8A92" },
+  vegetal:  { tint: "#15924B" },
+  te:       { tint: "#15924B" },
+  refresco: { tint: "#C20000" },
 };
 
 // Reglas en orden de prioridad: primer match gana.

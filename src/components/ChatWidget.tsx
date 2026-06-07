@@ -6,6 +6,7 @@ import Link from "next/link";
 
 import { api } from "~/trpc/react";
 import { RichText } from "~/components/RichText";
+import { KoalaLogo } from "~/components/KoalaLogo";
 import type { ChatMsg } from "~/server/chatbot";
 
 const QUICK = [
@@ -62,11 +63,13 @@ export function ChatWidget() {
       <div className="pointer-events-none fixed bottom-0 left-1/2 z-40 w-full max-w-[480px] -translate-x-1/2">
         <button
           onClick={() => setOpen(true)}
-          className="pointer-events-auto absolute right-4 flex h-14 w-14 items-center justify-center rounded-full text-2xl text-white shadow-fab transition-transform active:scale-95"
+          className="pointer-events-auto absolute right-4 flex h-14 w-14 items-center justify-center rounded-full text-white shadow-fab transition-transform active:scale-95"
           style={{ bottom: "var(--chat-fab-bottom)", background: "linear-gradient(120deg, #C20000 0%, #8F0000 100%)" }}
-          aria-label="Open AI assistant"
+          aria-label="Abrir asistente Koko"
         >
-          💬
+          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white">
+            <KoalaLogo size={28} />
+          </span>
         </button>
       </div>
 
@@ -84,12 +87,12 @@ export function ChatWidget() {
               style={{ borderBottom: "1px solid var(--color-border)" }}
             >
               <div className="flex items-center gap-2.5">
-                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-rojo text-sm text-white">
-                  🤖
+                <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl border border-border bg-white">
+                  <KoalaLogo size={26} />
                 </div>
                 <div>
-                  <div className="font-bold text-ink">AI Assistant</div>
-                  <div className="text-[11px] text-muted">{provider ?? "Order Rescue"}</div>
+                  <div className="font-bold text-ink">Koko</div>
+                  <div className="text-[11px] text-muted">{provider ?? "Asistente · Order Rescue"}</div>
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -113,7 +116,8 @@ export function ChatWidget() {
             <div ref={scrollRef} className="no-scrollbar flex-1 space-y-2.5 overflow-y-auto p-4">
               {visible.length === 0 && (
                 <div className="text-sm text-muted">
-                  ¡Hola! Pregúntame sobre CEDIS, SKUs o pedidos. Prueba una sugerencia 👇
+                  ¡Hola! Soy <span className="font-semibold text-ink">Koko</span>. Pregúntame sobre tus pedidos,
+                  productos o riesgos de cambio. Prueba una sugerencia:
                 </div>
               )}
               {visible.map((m, i) => (

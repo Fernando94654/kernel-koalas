@@ -48,7 +48,7 @@ export function NavSidebar() {
                 active ? "font-semibold" : "text-muted hover:bg-surface hover:text-ink",
               ].join(" ")}
             >
-              <span className={`text-base ${active ? "" : "opacity-60"}`}>{tab.icon}</span>
+              <tab.icon size={18} strokeWidth={active ? 2.4 : 2} />
               {tab.label}
               {active && (
                 <span
